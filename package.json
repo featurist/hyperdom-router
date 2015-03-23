@@ -1,0 +1,18 @@
+{
+  "name": "plastiq-router",
+  "version": "1.0.0",
+  "description": "model driven router for plastiq",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Tim Macfarlane <timmacfarlane@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "prote": "1.1.0",
+    "routism": "0.0.6"
+  },
+  "siblingDependencies": {
+    "plastiq": "*"
+  }
+}
