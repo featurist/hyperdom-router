@@ -12,7 +12,16 @@
     "prote": "1.1.0",
     "routism": "0.0.6"
   },
-  "siblingDependencies": {
+  "peerDependencies": {
     "plastiq": "*"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/featurist/plastiq-router.git"
+  },
+  "bugs": {
+    "url": "https://github.com/featurist/plastiq-router/issues"
+  },
+  "homepage": "https://github.com/featurist/plastiq-router"
 }
