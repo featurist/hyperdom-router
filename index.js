@@ -113,6 +113,8 @@ module.exports = prototype({
       }
     }
 
+    delete this.nextRoute;
+
     var vdom = render();
 
     if (this.nextRoute && this.history.lastPath != this.nextRoute.path) {
