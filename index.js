@@ -6,9 +6,9 @@ var prototype = require('prote');
 module.exports = prototype({
   constructor: function (options) {
     this.routes = [];
-    this.history = options && options.hasOwnProperty('history')? options.history: historyApi;
-    if (this.history.init) {
-      this.history.init();
+    this.history = options && options.hasOwnProperty('history')? options.history: module.exports.historyApi;
+    if (this.history.start) {
+      this.history.start();
     }
 
     this[404] = options && options.hasOwnProperty('404')? options[404]: function () {
@@ -17,6 +17,12 @@ module.exports = prototype({
 
     this.push = this.push.bind(this);
     this.replace = this.replace.bind(this);
+  },
+
+  stop: function () {
+    if (this.history.stop) {
+      this.history.stop();
+    }
   },
 
   expand: function (pattern, params) {
@@ -148,17 +154,23 @@ function associativeArrayToObject(array) {
   return o;
 }
 
-var historyApi = {
-  init: function () {
+module.exports.historyApi = {
+  start: function () {
     var self = this;
     if (!this.listening) {
-      window.addEventListener('popstate', function (ev) {
+      this.popstateListener = function(ev) {
         self.popstate = true;
         self.popstateState = ev.state;
-        self.refresh();
-      });
+        if (self.refresh) {
+          self.refresh();
+        }
+      }
+      window.addEventListener('popstate', this.popstateListener);
       this.listening = true;
     }
+  },
+  stop: function () {
+    window.removeEventListener('popstate', this.popstateListener);
   },
   location: function () {
     return window.location;
