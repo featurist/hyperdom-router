@@ -19,12 +19,6 @@ module.exports = prototype({
     this.replace = this.replace.bind(this);
   },
 
-  stop: function () {
-    if (this.history.stop) {
-      this.history.stop();
-    }
-  },
-
   expand: function (pattern, params) {
     var paramsExpanded = {};
 
@@ -154,6 +148,12 @@ function associativeArrayToObject(array) {
   return o;
 }
 
+module.exports.stop = function () {
+  [module.exports.historyApi, module.exports.hash].forEach(function (api) {
+    api.stop();
+  });
+};
+
 module.exports.historyApi = {
   start: function () {
     var self = this;
@@ -183,5 +183,41 @@ module.exports.historyApi = {
   },
   replace: function (url) {
     window.history.replaceState(undefined, undefined, url);
+  }
+};
+
+module.exports.hash = {
+  start: function () {
+    var self = this;
+    if (!this.listening) {
+      this.hashchangeListener = function(ev) {
+        if (self.refresh) {
+          self.refresh();
+        }
+      }
+      window.addEventListener('hashchange', this.hashchangeListener);
+      this.listening = true;
+    }
+  },
+  stop: function () {
+    window.removeEventListener('hashchange', this.hashchangeListener);
+  },
+  location: function () {
+    var path = window.location.hash || '#';
+
+    var m = /^#(.*?)(\?.*)?$/.exec(path);
+
+    return {
+      pathname: '/' + m[1],
+      search: m[2] || ''
+    }
+  },
+  push: function (url) {
+    window.location.hash = url.replace(/^\//, '');
+  },
+  state: function (state) {
+  },
+  replace: function (url) {
+    return this.push(url);
   }
 };
