@@ -1,6 +1,6 @@
 {
   "name": "plastiq-router",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "description": "model driven router for plastiq",
   "main": "index.js",
   "scripts": {
