@@ -99,12 +99,22 @@ module.exports = prototype({
       this.history.lastRoute = route.route;
 
       if (route) {
-        if (lastRoute && lastRoute.from) {
-          lastRoute.from(model);
+        if (lastRoute) {
+          if (lastRoute.onleave) {
+            lastRoute.onleave(model);
+          } else if (lastRoute.from) {
+            console.warn('route options.from is deprecated, you should use options.onleave instead');
+            lastRoute.from(model);
+          }
         }
-        if (route.route && route.route.to) {
+        if (route.route && (route.route.onarrive || route.route.to)) {
           var state = this.history.popstate? this.history.popstateState: undefined;
-          route.route.to(model, associativeArrayToObject(route.params), state);
+          if (route.route.onarrive) {
+            route.route.onarrive(model, associativeArrayToObject(route.params), state);
+          } else {
+            console.warn('route options.to is deprecated, you should use options.onarrive instead');
+            route.route.to(model, associativeArrayToObject(route.params), state);
+          }
           delete this.history.popstate;
           delete this.history.popstateState;
         }
