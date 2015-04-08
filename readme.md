@@ -44,8 +44,13 @@ function render(model) {
 
 ## how does it work?
 
-* the current route is set during rendering, in the `render` function above. As with the HTML, the current route is based on the state of the model.
-* when the route is changed, either by entering a new URL into the address bar, or by clicking a link, the model is updated to reflect the new route. This is where the `onarrive` and `onleave` functions are invoked in each route, setting and unsetting the state of the model.
+* **The model drives the URL**
+
+    When the model changes and the page is rendered (with plastiq), the current URL is expressed by wrapping VDOM with a route. See how the `user` route is used in the `render` function above.
+
+* **The URL drives the model**
+
+    When the URL changes, either by typing a new URL or by navigating the browser back and forward, the new route adds properties to the model in the `onarrive` handler. When you navigate away from a route the `onleave` handler removes properties on the model.
 
 ## API
 
