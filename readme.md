@@ -50,7 +50,7 @@ function render(model) {
 
 * **The URL drives the model**
 
-    When the URL changes, either by typing a new URL or by navigating the browser back and forward, the new route adds properties to the model in the `onarrive` handler. When you navigate away from a route the `onleave` handler removes properties on the model.
+    When the URL changes, either by typing a new URL or by navigating the browser back and forward, the new route adds properties to the model in the `onarrive` handler, and re-renders the page. When you navigate away from a route the `onleave` handler removes properties on the model.
 
 ## API
 
