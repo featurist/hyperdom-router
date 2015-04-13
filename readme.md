@@ -30,7 +30,7 @@ var user = router.route('/users/:userId', {
 function render(model) {
   router.render(model, function () {
     if (model.userId) {
-      return user({userId: model.userId}, user,
+      return user({userId: model.userId}, model.user,
         model.user
           ? h('h1', user.name)
           : h('h1', 'loading...')
