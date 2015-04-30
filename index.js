@@ -1,152 +1,185 @@
+var routism = require('routism');
 var plastiq = require('plastiq');
 var h = plastiq.html;
-var routism = require('routism');
-var prototype = require('prote');
+var refresh;
+var rendering = require('plastiq/rendering');
 
-module.exports = prototype({
-  constructor: function (options) {
-    this.routes = [];
-    this.history = options && options.hasOwnProperty('history')? options.history: module.exports.historyApi;
-    if (this.history.start) {
-      this.history.start();
-    }
+var routes = {
+  routes: [],
+  routesChanged: false,
 
-    this[404] = options && options.hasOwnProperty('404')? options[404]: function () {
-      return h('h1', '404');
-    };
-
-    this.push = this.push.bind(this);
-    this.replace = this.replace.bind(this);
+  start: function (history) {
+    this.history = history || exports.historyApi;
+    this.history.start();
   },
 
-  expand: function (pattern, params) {
-    var paramsExpanded = {};
+  stop: function () {
+    this.history.stop();
+  },
 
-    var url = pattern.replace(/:([a-z_][a-z0-9_]*)/gi, function (_, id) {
-      var param = params[id];
-      paramsExpanded[id] = true;
-      return param;
-    });
-
-    var query = Object.keys(params).filter(function (key) {
-      return !paramsExpanded[key];
-    }).map(function (key) {
-      return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
-    }).join('&');
-
-    if (query) {
-      return url + '?' + query;
-    } else {
-      return url;
+  compile: function () {
+    if (this.routesChanged) {
+      this.compiledRoutes = routism.compile(this.routes);
+      this.routesChanged = false;
     }
   },
 
-  route: function (pattern, binding) {
-    var self = this;
-
-    var route = binding;
-    this.routes.push({pattern: pattern, route: route});
-
-    return function(params, state, vdom) {
-      var hasState = false;
-
-      if (arguments.length == 1) {
-        if (arguments[0].constructor == Object) {
-          return self.expand(pattern, params);
-        } else {
-          vdom = params;
-          params = undefined;
-          state = undefined;
-          hasState = false;
-        }
-      } else if (arguments.length == 2) {
-        vdom = state;
-        state = undefined;
-        hasState = false;
-      } else {
-        hasState = true;
-      }
-
-      var path = params
-        ? self.expand(pattern, params)
-        : pattern;
-
-      self.nextRoute = {
-        path: path,
-        route: route
-      };
-
-      if (hasState) {
-        self.history.state(state);
-      }
-
-      return vdom;
-    };
+  isNotFound: function () {
+    if (this.currentRoute.isNotFound) {
+      return this.currentRoute;
+    }
   },
 
-  render: function (model, render) {
-    this.history.refresh = plastiq.html.refresh;
-
+  isCurrentRoute: function (route) {
     var location = this.history.location();
-    var path = location.pathname + location.search;
+    var href = location.pathname + location.search;
 
-    if (this.history.lastPath != path) {
-      var routes = routism.compile(this.routes);
-      var route = routes.recognise(location.pathname);
+    if (!this.currentRoute || this.currentRoute.href != href) {
+      this.compile();
+      var routeRecognised = this.compiledRoutes.recognise(location.pathname);
 
-      var lastRoute = this.history.lastRoute;
-      this.history.lastPath = path;
-      this.history.lastRoute = route.route;
+      if (routeRecognised) {
+        var search = location.search && parseSearch(location.search);
+        var paramArray = search
+          ? search.concat(routeRecognised.params)
+          : routeRecognised.params;
 
-      if (route) {
-        if (lastRoute) {
-          if (lastRoute.onleave) {
-            lastRoute.onleave(model);
-          } else if (lastRoute.from) {
-            console.warn('route options.from is deprecated, you should use options.onleave instead');
-            lastRoute.from(model);
+        var params = associativeArrayToObject(paramArray);
+
+        var expandedUrl = expand(routeRecognised.route.pattern, params);
+        var self = this;
+
+        this.currentRoute = {
+          route: routeRecognised.route,
+          params: params,
+          href: href,
+          expandedUrl: expandedUrl,
+          times: 1,
+          replace: function (params) {
+            var url = expand(this.route.pattern, params);
+            if (this.expandedUrl != url) {
+              self.history.replace(url);
+              this.href = location.pathname + location.search;
+              this.expandedUrl = url;
+            }
           }
-        }
-        if (route.route && (route.route.onarrive || route.route.to)) {
-          var state = this.history.popstate? this.history.popstateState: undefined;
-          if (route.route.onarrive) {
-            route.route.onarrive(model, associativeArrayToObject(route.params), state);
-          } else {
-            console.warn('route options.to is deprecated, you should use options.onarrive instead');
-            route.route.to(model, associativeArrayToObject(route.params), state);
-          }
-          delete this.history.popstate;
-          delete this.history.popstateState;
-        }
+        };
       } else {
-        return this[404]();
+        this.currentRoute = {
+          isNotFound: true,
+          href: href
+        };
       }
     }
 
-    delete this.nextRoute;
+    if (this.currentRoute.route === route) {
+      this.currentRoute.isNew = this.currentRoute.times-- > 0;
+      return this.currentRoute;
+    }
+  },
 
-    var vdom = render();
+  push: function (pattern) {
+    var route = {pattern: pattern};
+    this.routes.push({pattern: pattern, route: route});
+    this.routesChanged = true;
+    return route;
+  }
+};
 
-    if (this.nextRoute && this.history.lastPath != this.nextRoute.path) {
-      this.history.lastPath = this.nextRoute.path;
-      this.history.lastRoute = this.nextRoute.route;
-      this.history.push(this.history.lastPath);
-      delete this.nextRoute;
+function parseSearch(search) {
+  return search && search.substring(1).split('&').map(function (param) {
+    return param.split('=').map(decodeURIComponent);
+  });
+}
+
+var popstateListener;
+
+exports.start = function (history) {
+  routes.start(history);
+};
+
+exports.stop = function () {
+  routes.stop();
+};
+
+exports.route = function (pattern) {
+  var route = routes.push(pattern);
+
+  return function (paramBindings, render) {
+    refresh = h.refresh;
+
+    if (typeof paramBindings === 'function') {
+      render = paramBindings;
+      paramBindings = undefined;
     }
 
-    return vdom;
-  },
+    if (!render) {
+      var params = paramBindings || {};
+      var url = expand(pattern, params);
 
-  push: function (ev) {
-    this.history.push(ev.target.href);
-    ev.preventDefault();
-  },
+      return {
+        push: function (ev) {
+          if (ev) {
+            ev.preventDefault();
+          }
 
-  replace: function (ev) {
-    this.history.replace(ev.target.href);
-    ev.preventDefault();
+          routes.history.push(url);
+        },
+
+        href: url,
+
+        a: function () {
+          var options;
+          if (arguments[0] && arguments[0].constructor == Object) {
+            options = arguments[0];
+            content = Array.prototype.slice.call(arguments, 1);
+          } else {
+            options = {};
+            content = Array.prototype.slice.call(arguments, 0);
+          }
+
+          options.href = url;
+          options.onclick = this.push.bind(this);
+
+          return h.apply(h, ['a', options].concat(content));
+        }
+      };
+    } else {
+      var currentRoute = routes.isCurrentRoute(route);
+
+      if (currentRoute) {
+        if (paramBindings) {
+          if (currentRoute.isNew) {
+            Object.keys(currentRoute.params).forEach(function (param) {
+              var value = currentRoute.params[param];
+
+              h.binding(paramBindings[param], {norefresh: true}).set(value);
+            });
+          } else {
+            var newParams = {};
+
+            Object.keys(paramBindings).forEach(function (param) {
+              var value = h.binding(paramBindings[param]).get();
+              newParams[param] = value;
+            });
+
+            currentRoute.replace(newParams);
+          }
+        }
+
+        return render(currentRoute.params);
+      }
+    }
+  };
+};
+
+exports.notFound = function (render) {
+  var notFoundRoute = routes.isNotFound();
+
+  if (notFoundRoute) {
+    return render(notFoundRoute.href);
   }
-});
+};
 
 function associativeArrayToObject(array) {
   var o = {};
@@ -158,21 +191,37 @@ function associativeArrayToObject(array) {
   return o;
 }
 
-module.exports.stop = function () {
-  [module.exports.historyApi, module.exports.hash].forEach(function (api) {
-    api.stop();
-  });
-};
+function expand(pattern, params) {
+  var paramsExpanded = {};
 
-module.exports.historyApi = {
+  var url = pattern.replace(/:([a-z_][a-z0-9_]*)/gi, function (_, id) {
+    var param = params[id];
+    paramsExpanded[id] = true;
+    return param;
+  });
+
+  var query = Object.keys(params).filter(function (key) {
+    return !paramsExpanded[key];
+  }).map(function (key) {
+    return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+  }).join('&');
+
+  if (query) {
+    return url + '?' + query;
+  } else {
+    return url;
+  }
+}
+
+exports.historyApi = {
   start: function () {
     var self = this;
     if (!this.listening) {
       this.popstateListener = function(ev) {
         self.popstate = true;
         self.popstateState = ev.state;
-        if (self.refresh) {
-          self.refresh();
+        if (refresh) {
+          refresh();
         }
       }
       window.addEventListener('popstate', this.popstateListener);
@@ -196,13 +245,13 @@ module.exports.historyApi = {
   }
 };
 
-module.exports.hash = {
+exports.hash = {
   start: function () {
     var self = this;
     if (!this.listening) {
       this.hashchangeListener = function(ev) {
-        if (self.refresh) {
-          self.refresh();
+        if (refresh) {
+          refresh();
         }
       }
       window.addEventListener('hashchange', this.hashchangeListener);
