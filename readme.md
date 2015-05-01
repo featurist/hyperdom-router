@@ -93,7 +93,7 @@ router.start([options]);
 
 Starts the router, adding event handlers for navigation.
 
-* `options.history` - a history driver, currently two supported: `router.historyApi` and `router.hash`.
+* `options.history` - a history driver, currently two supported: `router.historyApi` (the default) and `router.hash`.
 
 ## stop
 
