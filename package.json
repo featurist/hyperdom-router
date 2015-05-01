@@ -1,6 +1,6 @@
 {
-  "name": "plastiq-router",
-  "version": "2.1.0",
+  "name": "plastiq-router-gh-pages",
+  "version": "1.0.0",
   "description": "model driven router for plastiq",
   "main": "index.js",
   "scripts": {
@@ -8,12 +8,13 @@
   },
   "author": "Tim Macfarlane <timmacfarlane@gmail.com>",
   "license": "MIT",
-  "dependencies": { },
+  "dependencies": {},
   "peerDependencies": {
     "plastiq": "*"
   },
   "devDependencies": {
-    "browserify": "10.0.0"
+    "browserify": "10.0.0",
+    "plastiq-router": "2.1.4"
   },
   "repository": {
     "type": "git",
