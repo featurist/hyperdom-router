@@ -31,21 +31,6 @@ var routes = {
   search: router.route('/search')
 };
 
-var model = {
-  documents: [
-    {id: 0, title: 'One', content: 'With just one polka dot, nothing can be achieved...'},
-    {id: 1, title: 'Two', content: 'Sometimes I am two people. Johnny is the nice one...'},
-    {id: 2, title: 'Three', content: 'To be stupid, selfish, and have good health are three requirements for happiness...'}
-  ]
-};
-
-function renderDocument(d) {
-  return h('.document',
-    h('h1', d.title),
-    h('.content', d.content)
-  );
-}
-
 router.start();
 
 function render(model) {
@@ -53,6 +38,7 @@ function render(model) {
     routes.root().a('Home'),
     ' | ',
     routes.search().a('Search'),
+
     routes.root(function () {
       return h('ol.documents',
         model.documents.map(function (d, index) {
@@ -60,9 +46,11 @@ function render(model) {
         })
       );
     }),
+
     routes.document(function (params) {
       return renderDocument(model.documents[params.documentId]);
     }),
+
     routes.search({q: [model, 'query']}, function () {
       var query = model.query? model.query.toLowerCase(): undefined;
       return h('div',
@@ -77,6 +65,21 @@ function render(model) {
         )
       );
     })
+  );
+}
+
+var model = {
+  documents: [
+    {id: 0, title: 'One', content: 'With just one polka dot, nothing can be achieved...'},
+    {id: 1, title: 'Two', content: 'Sometimes I am two people. Johnny is the nice one...'},
+    {id: 2, title: 'Three', content: 'To be stupid, selfish, and have good health are three requirements for happiness...'}
+  ]
+};
+
+function renderDocument(d) {
+  return h('.document',
+    h('h1', d.title),
+    h('.content', d.content)
   );
 }
 
