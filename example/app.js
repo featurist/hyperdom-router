@@ -3,10 +3,12 @@ var plastiq = require('plastiq');
 var h = plastiq.html;
 var router = require('.');
 
+baseUrl = '/plasitq-router/example'
+
 var routes = {
-  root: router.route('/'),
-  document: router.route('/document/:documentId'),
-  search: router.route('/search')
+  root: router.route(baseUrl + '/'),
+  document: router.route(baseUrl + '/document/:documentId'),
+  search: router.route(baseUrl + '/search')
 };
 
 var model = {
@@ -60,7 +62,7 @@ function render(model) {
 
 plastiq.append(document.body, render, model);
 
-},{".":2,"plastiq":7}],2:[function(require,module,exports){
+},{".":2,"plastiq":8}],2:[function(require,module,exports){
 var routism = require('routism');
 var plastiq = require('plastiq');
 var h = plastiq.html;
@@ -71,8 +73,8 @@ var routes = {
   routes: [],
   routesChanged: false,
 
-  start: function (history) {
-    this.history = history || exports.historyApi;
+  start: function (options) {
+    this.history = (options && options.history) || exports.historyApi;
     this.history.start();
   },
 
@@ -182,8 +184,8 @@ function parseSearch(search) {
 
 var popstateListener;
 
-exports.start = function (history) {
-  routes.start(history);
+exports.start = function (options) {
+  routes.start(options);
 };
 
 exports.stop = function () {
@@ -195,7 +197,7 @@ exports.route = function (pattern) {
 
   return function (paramBindings, render) {
     if (!routes.history) {
-      throw new Error("router not started yet, start with require('plastiq-router').start([history])");
+      throw new Error("router not started yet, start with require('plastiq-router').start([options])");
     }
 
     if (typeof paramBindings === 'function') {
@@ -411,7 +413,9 @@ exports.hash = {
   }
 };
 
-},{"plastiq":7,"plastiq/rendering":45,"routism":49}],3:[function(require,module,exports){
+},{"plastiq":8,"plastiq/rendering":46,"routism":50}],3:[function(require,module,exports){
+
+},{}],4:[function(require,module,exports){
 var rendering = require('./rendering');
 
 function AnimationWidget(fn) {
@@ -442,7 +446,7 @@ module.exports = function (fn) {
   return new AnimationWidget(fn);
 };
 
-},{"./rendering":45}],4:[function(require,module,exports){
+},{"./rendering":46}],5:[function(require,module,exports){
 var vtext = require("virtual-dom/vnode/vtext.js")
 
 module.exports = function (child) {
@@ -457,7 +461,7 @@ module.exports = function (child) {
   }
 };
 
-},{"virtual-dom/vnode/vtext.js":39}],5:[function(require,module,exports){
+},{"virtual-dom/vnode/vtext.js":40}],6:[function(require,module,exports){
 var rendering = require('./rendering');
 var VText = require("virtual-dom/vnode/vtext.js")
 var domComponent = require('./domComponent');
@@ -548,7 +552,7 @@ module.exports = function (handlers, vdom) {
 
 module.exports.ComponentWidget = ComponentWidget;
 
-},{"./domComponent":6,"./rendering":45,"virtual-dom/vnode/vtext.js":39}],6:[function(require,module,exports){
+},{"./domComponent":7,"./rendering":46,"virtual-dom/vnode/vtext.js":40}],7:[function(require,module,exports){
 var createElement = require('virtual-dom/create-element');
 var diff = require('virtual-dom/diff');
 var patch = require('virtual-dom/patch');
@@ -589,7 +593,7 @@ function domComponent() {
 
 module.exports = domComponent;
 
-},{"./coerceToVdom":4,"virtual-dom/create-element":9,"virtual-dom/diff":10,"virtual-dom/patch":19}],7:[function(require,module,exports){
+},{"./coerceToVdom":5,"virtual-dom/create-element":10,"virtual-dom/diff":11,"virtual-dom/patch":20}],8:[function(require,module,exports){
 var rendering = require('./rendering');
 
 exports.html = rendering.html;
@@ -612,7 +616,7 @@ exports.html.promise = require('./promise');
 exports.html.animation = require('./animation');
 exports.router = require('./router');
 
-},{"./animation":3,"./component":5,"./oldbind":42,"./promise":43,"./rawHtml":44,"./rendering":45,"./router":46,"./windowEvents":48}],8:[function(require,module,exports){
+},{"./animation":4,"./component":6,"./oldbind":43,"./promise":44,"./rawHtml":45,"./rendering":46,"./router":47,"./windowEvents":49}],9:[function(require,module,exports){
 (function() {
     var self = this;
     var variableRegex, escapeRegex, addGroupForTo, addVariablesInTo, compile, recogniseIn, extractParamsForFromAfter;
@@ -710,22 +714,22 @@ exports.router = require('./router');
         return params;
     };
 }).call(this);
-},{}],9:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 var createElement = require("./vdom/create-element.js")
 
 module.exports = createElement
 
-},{"./vdom/create-element.js":21}],10:[function(require,module,exports){
+},{"./vdom/create-element.js":22}],11:[function(require,module,exports){
 var diff = require("./vtree/diff.js")
 
 module.exports = diff
 
-},{"./vtree/diff.js":41}],11:[function(require,module,exports){
+},{"./vtree/diff.js":42}],12:[function(require,module,exports){
 var h = require("./virtual-hyperscript/index.js")
 
 module.exports = h
 
-},{"./virtual-hyperscript/index.js":28}],12:[function(require,module,exports){
+},{"./virtual-hyperscript/index.js":29}],13:[function(require,module,exports){
 /*!
  * Cross-Browser Split 1.1.1
  * Copyright 2007-2012 Steven Levithan <stevenlevithan.com>
@@ -833,7 +837,7 @@ module.exports = (function split(undef) {
   return self;
 })();
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict';
 
 var OneVersionConstraint = require('individual/one-version');
@@ -855,7 +859,7 @@ function EvStore(elem) {
     return hash;
 }
 
-},{"individual/one-version":15}],14:[function(require,module,exports){
+},{"individual/one-version":16}],15:[function(require,module,exports){
 (function (global){
 'use strict';
 
@@ -878,7 +882,7 @@ function Individual(key, value) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
 'use strict';
 
 var Individual = require('./index.js');
@@ -902,7 +906,7 @@ function OneVersion(moduleName, version, defaultValue) {
     return Individual(key, defaultValue);
 }
 
-},{"./index.js":14}],16:[function(require,module,exports){
+},{"./index.js":15}],17:[function(require,module,exports){
 (function (global){
 var topLevel = typeof global !== 'undefined' ? global :
     typeof window !== 'undefined' ? window : {}
@@ -921,14 +925,14 @@ if (typeof document !== 'undefined') {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"min-document":50}],17:[function(require,module,exports){
+},{"min-document":3}],18:[function(require,module,exports){
 "use strict";
 
 module.exports = function isObject(x) {
 	return typeof x === "object" && x !== null;
 };
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var nativeIsArray = Array.isArray
 var toString = Object.prototype.toString
 
@@ -938,12 +942,12 @@ function isArray(obj) {
     return toString.call(obj) === "[object Array]"
 }
 
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var patch = require("./vdom/patch.js")
 
 module.exports = patch
 
-},{"./vdom/patch.js":24}],20:[function(require,module,exports){
+},{"./vdom/patch.js":25}],21:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook.js")
 
@@ -1042,7 +1046,7 @@ function getPrototype(value) {
     }
 }
 
-},{"../vnode/is-vhook.js":32,"is-object":17}],21:[function(require,module,exports){
+},{"../vnode/is-vhook.js":33,"is-object":18}],22:[function(require,module,exports){
 var document = require("global/document")
 
 var applyProperties = require("./apply-properties")
@@ -1090,7 +1094,7 @@ function createElement(vnode, opts) {
     return node
 }
 
-},{"../vnode/handle-thunk.js":30,"../vnode/is-vnode.js":33,"../vnode/is-vtext.js":34,"../vnode/is-widget.js":35,"./apply-properties":20,"global/document":16}],22:[function(require,module,exports){
+},{"../vnode/handle-thunk.js":31,"../vnode/is-vnode.js":34,"../vnode/is-vtext.js":35,"../vnode/is-widget.js":36,"./apply-properties":21,"global/document":17}],23:[function(require,module,exports){
 // Maps a virtual DOM tree onto a real DOM tree in an efficient manner.
 // We don't want to read all of the DOM nodes in the tree so we use
 // the in-order tree indexing to eliminate recursion down certain branches.
@@ -1177,7 +1181,7 @@ function ascending(a, b) {
     return a > b ? 1 : -1
 }
 
-},{}],23:[function(require,module,exports){
+},{}],24:[function(require,module,exports){
 var applyProperties = require("./apply-properties")
 
 var isWidget = require("../vnode/is-widget.js")
@@ -1331,7 +1335,7 @@ function replaceRoot(oldRoot, newRoot) {
     return newRoot;
 }
 
-},{"../vnode/is-widget.js":35,"../vnode/vpatch.js":38,"./apply-properties":20,"./create-element":21,"./update-widget":25}],24:[function(require,module,exports){
+},{"../vnode/is-widget.js":36,"../vnode/vpatch.js":39,"./apply-properties":21,"./create-element":22,"./update-widget":26}],25:[function(require,module,exports){
 var document = require("global/document")
 var isArray = require("x-is-array")
 
@@ -1409,7 +1413,7 @@ function patchIndices(patches) {
     return indices
 }
 
-},{"./dom-index":22,"./patch-op":23,"global/document":16,"x-is-array":18}],25:[function(require,module,exports){
+},{"./dom-index":23,"./patch-op":24,"global/document":17,"x-is-array":19}],26:[function(require,module,exports){
 var isWidget = require("../vnode/is-widget.js")
 
 module.exports = updateWidget
@@ -1426,7 +1430,7 @@ function updateWidget(a, b) {
     return false
 }
 
-},{"../vnode/is-widget.js":35}],26:[function(require,module,exports){
+},{"../vnode/is-widget.js":36}],27:[function(require,module,exports){
 'use strict';
 
 var EvStore = require('ev-store');
@@ -1455,7 +1459,7 @@ EvHook.prototype.unhook = function(node, propertyName) {
     es[propName] = undefined;
 };
 
-},{"ev-store":13}],27:[function(require,module,exports){
+},{"ev-store":14}],28:[function(require,module,exports){
 'use strict';
 
 module.exports = SoftSetHook;
@@ -1474,7 +1478,7 @@ SoftSetHook.prototype.hook = function (node, propertyName) {
     }
 };
 
-},{}],28:[function(require,module,exports){
+},{}],29:[function(require,module,exports){
 'use strict';
 
 var isArray = require('x-is-array');
@@ -1611,7 +1615,7 @@ function errorString(obj) {
     }
 }
 
-},{"../vnode/is-thunk":31,"../vnode/is-vhook":32,"../vnode/is-vnode":33,"../vnode/is-vtext":34,"../vnode/is-widget":35,"../vnode/vnode.js":37,"../vnode/vtext.js":39,"./hooks/ev-hook.js":26,"./hooks/soft-set-hook.js":27,"./parse-tag.js":29,"x-is-array":18}],29:[function(require,module,exports){
+},{"../vnode/is-thunk":32,"../vnode/is-vhook":33,"../vnode/is-vnode":34,"../vnode/is-vtext":35,"../vnode/is-widget":36,"../vnode/vnode.js":38,"../vnode/vtext.js":40,"./hooks/ev-hook.js":27,"./hooks/soft-set-hook.js":28,"./parse-tag.js":30,"x-is-array":19}],30:[function(require,module,exports){
 'use strict';
 
 var split = require('browser-split');
@@ -1667,7 +1671,7 @@ function parseTag(tag, props) {
     return props.namespace ? tagName : tagName.toUpperCase();
 }
 
-},{"browser-split":12}],30:[function(require,module,exports){
+},{"browser-split":13}],31:[function(require,module,exports){
 var isVNode = require("./is-vnode")
 var isVText = require("./is-vtext")
 var isWidget = require("./is-widget")
@@ -1709,14 +1713,14 @@ function renderThunk(thunk, previous) {
     return renderedThunk
 }
 
-},{"./is-thunk":31,"./is-vnode":33,"./is-vtext":34,"./is-widget":35}],31:[function(require,module,exports){
+},{"./is-thunk":32,"./is-vnode":34,"./is-vtext":35,"./is-widget":36}],32:[function(require,module,exports){
 module.exports = isThunk
 
 function isThunk(t) {
     return t && t.type === "Thunk"
 }
 
-},{}],32:[function(require,module,exports){
+},{}],33:[function(require,module,exports){
 module.exports = isHook
 
 function isHook(hook) {
@@ -1725,7 +1729,7 @@ function isHook(hook) {
        typeof hook.unhook === "function" && !hook.hasOwnProperty("unhook"))
 }
 
-},{}],33:[function(require,module,exports){
+},{}],34:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualNode
@@ -1734,7 +1738,7 @@ function isVirtualNode(x) {
     return x && x.type === "VirtualNode" && x.version === version
 }
 
-},{"./version":36}],34:[function(require,module,exports){
+},{"./version":37}],35:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = isVirtualText
@@ -1743,17 +1747,17 @@ function isVirtualText(x) {
     return x && x.type === "VirtualText" && x.version === version
 }
 
-},{"./version":36}],35:[function(require,module,exports){
+},{"./version":37}],36:[function(require,module,exports){
 module.exports = isWidget
 
 function isWidget(w) {
     return w && w.type === "Widget"
 }
 
-},{}],36:[function(require,module,exports){
+},{}],37:[function(require,module,exports){
 module.exports = "2"
 
-},{}],37:[function(require,module,exports){
+},{}],38:[function(require,module,exports){
 var version = require("./version")
 var isVNode = require("./is-vnode")
 var isWidget = require("./is-widget")
@@ -1827,7 +1831,7 @@ function VirtualNode(tagName, properties, children, key, namespace) {
 VirtualNode.prototype.version = version
 VirtualNode.prototype.type = "VirtualNode"
 
-},{"./is-thunk":31,"./is-vhook":32,"./is-vnode":33,"./is-widget":35,"./version":36}],38:[function(require,module,exports){
+},{"./is-thunk":32,"./is-vhook":33,"./is-vnode":34,"./is-widget":36,"./version":37}],39:[function(require,module,exports){
 var version = require("./version")
 
 VirtualPatch.NONE = 0
@@ -1851,7 +1855,7 @@ function VirtualPatch(type, vNode, patch) {
 VirtualPatch.prototype.version = version
 VirtualPatch.prototype.type = "VirtualPatch"
 
-},{"./version":36}],39:[function(require,module,exports){
+},{"./version":37}],40:[function(require,module,exports){
 var version = require("./version")
 
 module.exports = VirtualText
@@ -1863,7 +1867,7 @@ function VirtualText(text) {
 VirtualText.prototype.version = version
 VirtualText.prototype.type = "VirtualText"
 
-},{"./version":36}],40:[function(require,module,exports){
+},{"./version":37}],41:[function(require,module,exports){
 var isObject = require("is-object")
 var isHook = require("../vnode/is-vhook")
 
@@ -1923,7 +1927,7 @@ function getPrototype(value) {
   }
 }
 
-},{"../vnode/is-vhook":32,"is-object":17}],41:[function(require,module,exports){
+},{"../vnode/is-vhook":33,"is-object":18}],42:[function(require,module,exports){
 var isArray = require("x-is-array")
 
 var VPatch = require("../vnode/vpatch")
@@ -2352,7 +2356,7 @@ function appendPatch(apply, patch) {
     }
 }
 
-},{"../vnode/handle-thunk":30,"../vnode/is-thunk":31,"../vnode/is-vnode":33,"../vnode/is-vtext":34,"../vnode/is-widget":35,"../vnode/vpatch":38,"./diff-props":40,"x-is-array":18}],42:[function(require,module,exports){
+},{"../vnode/handle-thunk":31,"../vnode/is-thunk":32,"../vnode/is-vnode":34,"../vnode/is-vtext":35,"../vnode/is-widget":36,"../vnode/vpatch":39,"./diff-props":41,"x-is-array":19}],43:[function(require,module,exports){
 module.exports = function (obj, prop) {
   console.log("plastiq.bind() will be deprecated in the next release, use [model, 'fieldName'] instead");
 
@@ -2366,7 +2370,7 @@ module.exports = function (obj, prop) {
   };
 };
 
-},{}],43:[function(require,module,exports){
+},{}],44:[function(require,module,exports){
 var rendering = require('./rendering');
 var createElement = require('virtual-dom/create-element');
 var coerceToVdom = require('./coerceToVdom');
@@ -2446,7 +2450,7 @@ module.exports = function(promise, handlers) {
   return new PromiseWidget(promise, handlers);
 };
 
-},{"./coerceToVdom":4,"./domComponent":6,"./rendering":45,"virtual-dom/create-element":9}],44:[function(require,module,exports){
+},{"./coerceToVdom":5,"./domComponent":7,"./rendering":46,"virtual-dom/create-element":10}],45:[function(require,module,exports){
 var createElement = require('virtual-dom/create-element');
 var rendering = require('./rendering');
 
@@ -2481,7 +2485,7 @@ module.exports = function (selector, options, html) {
   }
 };
 
-},{"./rendering":45,"virtual-dom/create-element":9}],45:[function(require,module,exports){
+},{"./rendering":46,"virtual-dom/create-element":10}],46:[function(require,module,exports){
 var h = require('virtual-dom/h');
 var domComponent = require('./domComponent');
 var simplePromise = require('./simplePromise');
@@ -2874,7 +2878,7 @@ function generateClassName(obj) {
   }
 };
 
-},{"./coerceToVdom":4,"./domComponent":6,"./simplePromise":47,"virtual-dom/h":11}],46:[function(require,module,exports){
+},{"./coerceToVdom":5,"./domComponent":7,"./simplePromise":48,"virtual-dom/h":12}],47:[function(require,module,exports){
 var plastiq = require('./');
 var rendering = require('./rendering');
 var routism = require('routism');
@@ -3073,7 +3077,7 @@ function router(options) {
 
 module.exports = router;
 
-},{"./":7,"./rendering":45,"routism":8}],47:[function(require,module,exports){
+},{"./":8,"./rendering":46,"routism":9}],48:[function(require,module,exports){
 function SimplePromise () {
   this.listeners = [];
 }
@@ -3103,7 +3107,7 @@ module.exports = function () {
   return new SimplePromise();
 };
 
-},{}],48:[function(require,module,exports){
+},{}],49:[function(require,module,exports){
 var domComponent = require('./domComponent');
 var VText = require("virtual-dom/vnode/vtext.js")
 
@@ -3190,7 +3194,7 @@ module.exports = function (attributes, vdom, refreshFunction) {
   return new WindowWidget(attributes, vdom, refreshFunction);
 };
 
-},{"./domComponent":6,"virtual-dom/vnode/vtext.js":39}],49:[function(require,module,exports){
+},{"./domComponent":7,"virtual-dom/vnode/vtext.js":40}],50:[function(require,module,exports){
 (function() {
     var self = this;
     var variableRegex, splatVariableRegex, escapeRegex, addGroupForTo, addVariablesInTo, compile, recogniseIn, extractParamsForFromAfter;
@@ -3285,6 +3289,4 @@ module.exports = function (attributes, vdom, refreshFunction) {
         return params;
     };
 }).call(this);
-},{}],50:[function(require,module,exports){
-
 },{}]},{},[1]);

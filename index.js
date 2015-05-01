@@ -8,8 +8,8 @@ var routes = {
   routes: [],
   routesChanged: false,
 
-  start: function (history) {
-    this.history = history || exports.historyApi;
+  start: function (options) {
+    this.history = (options && options.history) || exports.historyApi;
     this.history.start();
   },
 
@@ -119,8 +119,8 @@ function parseSearch(search) {
 
 var popstateListener;
 
-exports.start = function (history) {
-  routes.start(history);
+exports.start = function (options) {
+  routes.start(options);
 };
 
 exports.stop = function () {
@@ -132,7 +132,7 @@ exports.route = function (pattern) {
 
   return function (paramBindings, render) {
     if (!routes.history) {
-      throw new Error("router not started yet, start with require('plastiq-router').start([history])");
+      throw new Error("router not started yet, start with require('plastiq-router').start([options])");
     }
 
     if (typeof paramBindings === 'function') {
