@@ -6,7 +6,7 @@
 
 ## rewrite + API simplication
 
-Documentation for the 1.x API, can be found [https://github.com/featurist/plastiq-router/tree/v1](here).
+Documentation for the 1.x API, can be found [here](https://github.com/featurist/plastiq-router/tree/v1).
 
 ## install
 
