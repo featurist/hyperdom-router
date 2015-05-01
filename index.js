@@ -57,7 +57,7 @@ var routes = {
           times: 1,
           replace: function (params) {
             var url = expand(this.route.pattern, params);
-            self.replace(url);
+            self.replace(url, {sameRoute: true});
           }
         };
       } else {
@@ -69,11 +69,13 @@ var routes = {
     }
   },
 
-  isCurrentRoute: function (route) {
+  isCurrentRoute: function (route, renderRoute) {
     this.makeCurrentRoute();
 
     if (this.currentRoute.route === route) {
-      this.currentRoute.isNew = this.currentRoute.times-- > 0;
+      if (renderRoute) {
+        this.currentRoute.isNew = this.currentRoute.times-- > 0;
+      }
       return this.currentRoute;
     }
   },
@@ -129,6 +131,10 @@ exports.route = function (pattern) {
   var route = routes.add(pattern);
 
   return function (paramBindings, render) {
+    if (!routes.history) {
+      throw new Error("router not started yet, start with require('plastiq-router').start([history])");
+    }
+
     if (typeof paramBindings === 'function') {
       render = paramBindings;
       paramBindings = undefined;
@@ -177,7 +183,7 @@ exports.route = function (pattern) {
       };
     } else {
       refresh = h.refresh;
-      var currentRoute = routes.isCurrentRoute(route);
+      var currentRoute = routes.isCurrentRoute(route, true);
 
       if (currentRoute) {
         if (paramBindings) {
@@ -190,20 +196,24 @@ exports.route = function (pattern) {
           } else {
             var newParams = {};
 
-            var keys = Object.keys(paramBindings);
+            var bindings = Object.keys(paramBindings).map(function (key) {
+              return {
+                key: key,
+                binding: h.binding(paramBindings[key])
+              };
+            });
 
             function allBindingsHaveGetters() {
-              return !keys.some(function (k) {
-                return !paramBindings[k].get;
+              return !bindings.some(function (b) {
+                return !b.binding.get;
               });
             }
 
             if (allBindingsHaveGetters()) {
-              keys.forEach(function (param) {
-                var binding = h.binding(paramBindings[param]);
-                if (binding.get) {
-                  var value = binding.get();
-                  newParams[param] = value;
+              bindings.forEach(function (b) {
+                if (b.binding.get) {
+                  var value = b.binding.get();
+                  newParams[b.key] = value;
                 }
               });
 
@@ -236,19 +246,31 @@ function associativeArrayToObject(array) {
   return o;
 }
 
+function paramToString(p) {
+  if (p === undefined || p === null) {
+    return '';
+  } else {
+    return p;
+  }
+}
+
 function expand(pattern, params) {
   var paramsExpanded = {};
 
   var url = pattern.replace(/:([a-z_][a-z0-9_]*)/gi, function (_, id) {
     var param = params[id];
     paramsExpanded[id] = true;
-    return param;
+    return paramToString(param);
   });
 
-  var query = Object.keys(params).filter(function (key) {
-    return !paramsExpanded[key];
-  }).map(function (key) {
-    return encodeURIComponent(key) + '=' + encodeURIComponent(params[key]);
+  var query = Object.keys(params).map(function (key) {
+    var param = paramToString(params[key]);
+
+    if (!paramsExpanded[key] && param != '') {
+      return encodeURIComponent(key) + '=' + encodeURIComponent(param);
+    }
+  }).filter(function (param) {
+    return param;
   }).join('&');
 
   if (query) {

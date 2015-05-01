@@ -1,111 +1,167 @@
 # plastiq-router
 
+* incredibly simple
+* generate links from routes
+* route parameters can be bound to the model
+
+## rewrite + API simplication
+
+Documentation for the 1.x API, can be found [https://github.com/featurist/plastiq-router/tree/v1](here).
+
+## install
+
 ```bash
 npm install plastiq-router
 ```
 
-## routes
+## example
 
 ```js
-var plastiqRouter = require('plastiq-router');
+var plastiq = require('plastiq');
+var h = plastiq.html;
+var router = require('plastiq-router');
 
-var router = plastiqRouter();
+var routes = {
+  root: router.route('/'),
+  document: router.route('/document/:documentId'),
+  search: router.route('/search')
+};
 
-var root = router.route('/');
+var model = {
+  documents: [
+    {id: 0, title: 'One', content: 'With just one polka dot, nothing can be achieved...'},
+    {id: 1, title: 'Two', content: 'Sometimes I am two people. Johnny is the nice one...'},
+    {id: 2, title: 'Three', content: 'To be stupid, selfish, and have good health are three requirements for happiness...'}
+  ]
+};
 
-var user = router.route('/users/:userId', {
-  onarrive: function (model, params) {
-    model.userId = params.userId;
-    return userApi.user(params.userId).then(function (user) {
-      model.user = user;
-    });
-  },
+function renderDocument(d) {
+  return h('.document',
+    h('h1', d.title),
+    h('.content', d.content)
+  );
+}
 
-  onleave: function (model) {
-    delete model.userId;
-    delete model.user;
-  }
-});
+router.start();
 
 function render(model) {
-  router.render(model, function () {
-    if (model.userId) {
-      return user({userId: model.userId}, model.user,
-        model.user
-          ? h('h1', user.name)
-          : h('h1', 'loading...')
+  return h('div',
+    routes.root().a('Home'),
+    ' | ',
+    routes.search().a('Search'),
+    routes.root(function () {
+      return h('ol.documents',
+        model.documents.map(function (d, index) {
+          return h('li', routes.document({documentId: index}).a(d.title));
+        })
       );
-    } else {
-      return root(h('h1', 'root'));
-    }
-  });
+    }),
+    routes.document(function (params) {
+      return renderDocument(model.documents[params.documentId]);
+    }),
+    routes.search({q: [model, 'query']}, function () {
+      var query = model.query? model.query.toLowerCase(): undefined;
+      return h('div',
+        h('h1', 'search'),
+        h('input', {type: 'text', binding: [model, 'query']}),
+        h('ol.results',
+          model.documents.filter(function (d) {
+            return query && d.title.toLowerCase().indexOf(query) >= 0 || d.content.toLowerCase().indexOf(query) >= 0;
+          }).map(function (d) {
+            return h('li', routes.document({documentId: d.id}).a(d.title));
+          })
+        )
+      );
+    })
+  );
 }
+
+plastiq.append(document.body, render, model);
 ```
 
-## how does it work?
+# API
 
-* **The model drives the URL**
-
-    When the model changes and the page is rendered (with plastiq), the current URL is expressed by wrapping VDOM with a route. See how the `user` route is used in the `render` function above.
-
-* **The URL drives the model**
-
-    When the URL changes, either by typing a new URL or by navigating the browser back and forward, the new route adds properties to the model in the `onarrive` handler, and re-renders the page. When you navigate away from a route the `onleave` handler removes properties on the model.
-
-## API
-
-### Requiring
+## create a route
 
 ```js
-var plastiqRouter = require('plastiq-router');
+var route = router.route(pattern);
 ```
 
-### Creating a Router
+* `pattern` - the path pattern: `/` or `/path`, or `/path/:id`, or `/path/:id/:path*`
+* `route` - the route, to be used in rendering, see below
+
+## render a route
+
+Routes can be rendered in two forms, passive and active. Passive routes do not modify the route parameters, active routes bind the model to the route parameters, effectively allowing the URL to change as the model changes.
+
+### passive routes
 
 ```js
-var router = plastiqRouter([options]);
+route(function (params) {
+  return vdom;
+});
 ```
 
-* `options`
-    * `history` - the type of history to use, by default this is the browser's history API (`plastiqRouter.history`).
+If the route is active, returns the `vdom` passing the `params` taken from the route to the function. If the route is not active, `undefined` is returned.
 
-### Creating Routes
+* `params` - the params taken from the route, these can be from `:param` elements in the route pattern or query string parameters.
+
+### active routes
 
 ```js
-var route = router.route(path, [handlers]);
+route(bindings, function () {
+  return vdom;
+});
 ```
 
-* `path` - the path of the route, can contain parameters in the form of `:name`, or `:name*` to include `/` characters.
-* `handlers` - (optional)
-    * `onarrive(model, params, state)`
+* `bindings` - how the model binds on to the route parameters, takes the form:
 
-        Called when we arrive at this route, allowing the model to be set appropriately
+    {
+      param1: [model, 'param1'],
+      param2: [model, 'param2']
+    }
 
-        * `model` - the model passed to the `router.render(model, render)` function.
-        * `params` - the parameters extracted from the URL using the pattern in `path`
-        * `state` - the state previously set in the history API for this URL, see `route([params, [state]], vdom)`
+    Where the object keys are the parameter names, and the values are the bindings onto the model.
 
-    * `onleave(model)`
-
-        Called when we leave this route, allowing the model to be unset appropriately
-
-        * `model` - the model passed to the `router.render(model, render)` function.
-
-### Rendering a Route
+## route instances
 
 ```js
-var vdom = route([params, [state]], vdom);
+var routeInstance = route([params]);
 ```
 
-* `params` - (optional), the parameters to give the route from the model.
-* `state` - (optional), the state to store in the history API for this URL.
-* `vdom` - the VDOM to render for this route.
+* `params` - an optional object containing the parameters of the form:
 
-### Rendering your page
+    {param1: 'param1 value', param2: 'param2 value'}
+
+### href
 
 ```js
-var pageVdom = router.render(model, render);
+routeInstance.href
 ```
 
-* `model` - the page's model.
-* `render` - a function rendering the vdom for the page.
+The root-relative HREF of the route - of the form `/path`.
+
+### active
+
+```js
+routeInstance.active
+```
+
+Whether the route is currently active.
+
+### push, replace
+
+```js
+routeInstance.push()
+routeInstance.replace()
+```
+
+Either push the route onto the history stack (using history.pushState) or replace the current URL (using history.replaceState). Replace only works with the router.historyApi driver, which is the default.
+
+### a, anchor, link
+
+```js
+routeInstance.a([options], contents, ...)
+```
+
+Generates virtual DOM for an anchor for the route, passing the arguments to `h('a', options, contents, ...)`, but with the correct `href` and `onclick` properties set.
