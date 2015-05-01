@@ -3,7 +3,7 @@ var plastiq = require('plastiq');
 var h = plastiq.html;
 var router = require('.');
 
-baseUrl = '/plasitq-router/example'
+baseUrl = '/plastiq-router/example'
 
 var routes = {
   root: router.route(baseUrl + '/'),
