@@ -32,6 +32,8 @@ function render(model) {
     routes.root().a('Home'),
     ' | ',
     routes.search().a('Search'),
+    ' | ',
+    h('a', {href: 'https://github.com/featurist/plastiq-router'}, 'Github'),
     routes.root(function () {
       return h('ol.documents',
         model.documents.map(function (d, index) {
