@@ -30,7 +30,7 @@ var routes = {
     }
   },
 
-  isCurrentRoute: function (route) {
+  makeCurrentRoute: function () {
     var location = this.history.location();
     var href = location.pathname + location.search;
 
@@ -57,11 +57,7 @@ var routes = {
           times: 1,
           replace: function (params) {
             var url = expand(this.route.pattern, params);
-            if (this.expandedUrl != url) {
-              self.history.replace(url);
-              this.href = location.pathname + location.search;
-              this.expandedUrl = url;
-            }
+            self.replace(url);
           }
         };
       } else {
@@ -71,6 +67,10 @@ var routes = {
         };
       }
     }
+  },
+
+  isCurrentRoute: function (route) {
+    this.makeCurrentRoute();
 
     if (this.currentRoute.route === route) {
       this.currentRoute.isNew = this.currentRoute.times-- > 0;
@@ -78,11 +78,34 @@ var routes = {
     }
   },
 
-  push: function (pattern) {
+  add: function (pattern) {
     var route = {pattern: pattern};
     this.routes.push({pattern: pattern, route: route});
     this.routesChanged = true;
     return route;
+  },
+
+  pushOrReplace: function (pushReplace, url, options) {
+    if ((options && options.force) || !this.currentRoute || this.currentRoute.expandedUrl != url) {
+      this.history[pushReplace](url);
+      var location = this.history.location();
+
+      if (options && options.sameRoute) {
+        this.currentRoute.href = location.pathname + location.search;
+        this.currentRoute.expandedUrl = url;
+      } else {
+        delete this.currentRoute;
+        this.makeCurrentRoute();
+      }
+    }
+  },
+
+  push: function (url, options) {
+    this.pushOrReplace('push', url, options);
+  },
+
+  replace: function (url, options) {
+    this.pushOrReplace('replace', url, options);
   }
 };
 
@@ -103,11 +126,9 @@ exports.stop = function () {
 };
 
 exports.route = function (pattern) {
-  var route = routes.push(pattern);
+  var route = routes.add(pattern);
 
   return function (paramBindings, render) {
-    refresh = h.refresh;
-
     if (typeof paramBindings === 'function') {
       render = paramBindings;
       paramBindings = undefined;
@@ -123,8 +144,18 @@ exports.route = function (pattern) {
             ev.preventDefault();
           }
 
-          routes.history.push(url);
+          routes.push(url);
         },
+
+        replace: function (ev) {
+          if (ev) {
+            ev.preventDefault();
+          }
+
+          routes.replace(url);
+        },
+
+        active: !!routes.isCurrentRoute(route),
 
         href: url,
 
@@ -145,6 +176,7 @@ exports.route = function (pattern) {
         }
       };
     } else {
+      refresh = h.refresh;
       var currentRoute = routes.isCurrentRoute(route);
 
       if (currentRoute) {
@@ -158,12 +190,25 @@ exports.route = function (pattern) {
           } else {
             var newParams = {};
 
-            Object.keys(paramBindings).forEach(function (param) {
-              var value = h.binding(paramBindings[param]).get();
-              newParams[param] = value;
-            });
+            var keys = Object.keys(paramBindings);
 
-            currentRoute.replace(newParams);
+            function allBindingsHaveGetters() {
+              return !keys.some(function (k) {
+                return !paramBindings[k].get;
+              });
+            }
+
+            if (allBindingsHaveGetters()) {
+              keys.forEach(function (param) {
+                var binding = h.binding(paramBindings[param]);
+                if (binding.get) {
+                  var value = binding.get();
+                  newParams[param] = value;
+                }
+              });
+
+              currentRoute.replace(newParams);
+            }
           }
         }
 
