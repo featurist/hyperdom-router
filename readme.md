@@ -16,7 +16,7 @@ npm install plastiq-router
 
 ## example
 
-You can see this example in action [here](http://www.featurist.co.uk/plasitq-router/example/)
+You can see this example in action [here](http://www.featurist.co.uk/plastiq-router/example/)
 
 * On the search page, notice how the URL changes as you type the search query.
 
