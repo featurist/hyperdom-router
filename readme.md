@@ -6,7 +6,7 @@
 
 ## rewrite + API simplication
 
-Documentation for the 1.x API, can be found [https://github.com/featurist/plastiq-router/tree/v1](here).
+Documentation for the 1.x API, can be found [here](https://github.com/featurist/plastiq-router/tree/v1).
 
 ## install
 
@@ -15,6 +15,8 @@ npm install plastiq-router
 ```
 
 ## example
+
+You can see this example in action [here](http://www.featurist.co.uk/plasitq-router/example/)
 
 ```js
 var plastiq = require('plastiq');
