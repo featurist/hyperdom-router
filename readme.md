@@ -202,6 +202,7 @@ Either push the route onto the history stack (using history.pushState) or replac
 ### a, anchor, link
 
 ```js
+routeInstance.link([options], contents, ...)
 routeInstance.a([options], contents, ...)
 ```
 

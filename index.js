@@ -144,6 +144,8 @@ exports.route = function (pattern) {
       var params = paramBindings || {};
       var url = expand(pattern, params);
 
+      var currentRoute = routes.isCurrentRoute(route);
+
       return {
         push: function (ev) {
           if (ev) {
@@ -161,11 +163,15 @@ exports.route = function (pattern) {
           routes.replace(url);
         },
 
-        active: !!routes.isCurrentRoute(route),
+        active: currentRoute && currentRoute.expandedUrl == url,
 
         href: url,
 
         a: function () {
+          return this.link.apply(this, arguments);
+        },
+
+        link: function () {
           var options;
           if (arguments[0] && arguments[0].constructor == Object) {
             options = arguments[0];
