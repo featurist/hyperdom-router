@@ -85,6 +85,24 @@ plastiq.append(document.body, render, model);
 
 # API
 
+## start
+
+```js
+router.start([options]);
+```
+
+Starts the router, adding event handlers for navigation.
+
+* `options.history` - a history driver, currently two supported: `router.historyApi` and `router.hash`.
+
+## stop
+
+```js
+router.stop();
+```
+
+Stops the router, removing event handlers for navigation. This is particularly useful in test teardown.
+
 ## create a route
 
 ```js
