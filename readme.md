@@ -120,10 +120,12 @@ route(bindings, function () {
 
 * `bindings` - how the model binds on to the route parameters, takes the form:
 
+    ```js
     {
       param1: [model, 'param1'],
       param2: [model, 'param2']
     }
+    ```
 
     Where the object keys are the parameter names, and the values are the bindings onto the model.
 
@@ -135,7 +137,9 @@ var routeInstance = route([params]);
 
 * `params` - an optional object containing the parameters of the form:
 
+    ```js
     {param1: 'param1 value', param2: 'param2 value'}
+    ```
 
 ### href
 
