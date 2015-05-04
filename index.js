@@ -197,10 +197,20 @@ exports.route = function (pattern) {
             Object.keys(currentRoute.params).forEach(function (param) {
               var value = currentRoute.params[param];
 
-              h.binding(paramBindings[param], {norefresh: true}).set(value);
+              var paramBinding = paramBindings[param];
+              if (paramBinding) {
+                var binding = h.binding(paramBinding, {norefresh: true})
+                if (binding.set) {
+                  binding.set(value);
+                }
+              }
             });
           } else {
             var newParams = {};
+
+            Object.keys(currentRoute.params).forEach(function (key) {
+              newParams[key] = currentRoute.params[key];
+            });
 
             var bindings = Object.keys(paramBindings).map(function (key) {
               return {
