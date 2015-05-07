@@ -199,7 +199,7 @@ exports.route = function (pattern) {
 
               var paramBinding = paramBindings[param];
               if (paramBinding) {
-                var binding = h.binding(paramBinding, {norefresh: true})
+                var binding = h.binding(paramBinding, {refresh: 'promise'})
                 if (binding.set) {
                   binding.set(value);
                 }
