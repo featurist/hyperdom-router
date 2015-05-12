@@ -9,9 +9,7 @@
   "author": "Tim Macfarlane <timmacfarlane@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "routism": "1.0.0"
-  },
-  "peerDependencies": {
+    "routism": "1.0.0",
     "plastiq": "^1.14.0"
   },
   "devDependencies": {},
