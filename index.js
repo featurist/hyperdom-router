@@ -14,7 +14,10 @@ var routes = {
   },
 
   stop: function () {
-    this.history.stop();
+    if (this.history) {
+      this.history.stop();
+      delete this.history;
+    }
   },
 
   compile: function () {
@@ -300,19 +303,26 @@ exports.historyApi = {
   start: function () {
     var self = this;
     if (!this.listening) {
-      this.popstateListener = function(ev) {
-        self.popstate = true;
-        self.popstateState = ev.state;
-        if (refresh) {
-          refresh();
+      window.addEventListener('popstate', function(ev) {
+        if (self.active) {
+          self.popstate = true;
+          self.popstateState = ev.state;
+          if (refresh) {
+            refresh();
+          }
         }
-      }
-      window.addEventListener('popstate', this.popstateListener);
+      });
       this.listening = true;
     }
+
+    this.active = true;
   },
   stop: function () {
-    window.removeEventListener('popstate', this.popstateListener);
+    // I _think_ this is a chrome bug
+    // if we removeEventListener then history.back() doesn't work
+    // Chrome Version 43.0.2357.81 (64-bit), Mac OS X 10.10.3
+    // yeah...
+    this.active = false;
   },
   location: function () {
     return window.location;
