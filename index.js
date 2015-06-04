@@ -11,12 +11,14 @@ var routes = {
   start: function (history) {
     this.history = history || exports.historyApi;
     this.history.start();
+    this.started = true;
   },
 
   stop: function () {
-    if (this.history) {
+    if (this.started) {
       this.history.stop();
       delete this.history;
+      this.started = false;
     }
   },
 
@@ -134,10 +136,6 @@ exports.route = function (pattern) {
   var route = routes.add(pattern);
 
   return function (paramBindings, render) {
-    if (!routes.history) {
-      throw new Error("router not started yet, start with require('plastiq-router').start([history])");
-    }
-
     if (typeof paramBindings === 'function') {
       render = paramBindings;
       paramBindings = undefined;
@@ -147,7 +145,7 @@ exports.route = function (pattern) {
       var params = paramBindings || {};
       var url = expand(pattern, params);
 
-      var currentRoute = routes.isCurrentRoute(route);
+      var currentRoute = routes.started && routes.isCurrentRoute(route);
 
       return {
         push: function (ev) {
@@ -191,6 +189,10 @@ exports.route = function (pattern) {
         }
       };
     } else {
+      if (!routes.started) {
+        throw new Error("router not started yet, start with require('plastiq-router').start([history])");
+      }
+
       refresh = h.refresh;
       var currentRoute = routes.isCurrentRoute(route, true);
 

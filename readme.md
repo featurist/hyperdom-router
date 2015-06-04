@@ -174,6 +174,8 @@ var routeInstance = route([params]);
     {param1: 'param1 value', param2: 'param2 value'}
     ```
 
+Routes can be used from the server-side too! Although really only `href` works or makes any sense.
+
 ### href
 
 ```js
