@@ -4,117 +4,121 @@ var h = plastiq.html;
 var refresh;
 var rendering = require('plastiq/rendering');
 
-var routes = {
-  routes: [],
-  routesChanged: false,
+function createRoutes() {
+  return {
+    routes: [],
+    routesChanged: false,
 
-  start: function (history) {
-    this.history = history || exports.historyApi;
-    this.history.start();
-    this.started = true;
-  },
+    start: function (history) {
+      this.history = history || exports.historyApi;
+      this.history.start();
+      this.started = true;
+    },
 
-  stop: function () {
-    if (this.started) {
-      this.history.stop();
-      delete this.history;
-      this.started = false;
-    }
-  },
-
-  compile: function () {
-    if (this.routesChanged) {
-      this.compiledRoutes = routism.compile(this.routes);
-      this.routesChanged = false;
-    }
-  },
-
-  isNotFound: function () {
-    if (this.currentRoute.isNotFound) {
-      return this.currentRoute;
-    }
-  },
-
-  makeCurrentRoute: function () {
-    var location = this.history.location();
-    var href = location.pathname + location.search;
-
-    if (!this.currentRoute || this.currentRoute.href != href) {
-      this.compile();
-      var routeRecognised = this.compiledRoutes.recognise(location.pathname);
-
-      if (routeRecognised) {
-        var search = location.search && parseSearch(location.search);
-        var paramArray = search
-          ? search.concat(routeRecognised.params)
-          : routeRecognised.params;
-
-        var params = associativeArrayToObject(paramArray);
-
-        var expandedUrl = expand(routeRecognised.route.pattern, params);
-        var self = this;
-
-        this.currentRoute = {
-          route: routeRecognised.route,
-          params: params,
-          href: href,
-          expandedUrl: expandedUrl,
-          times: 1,
-          replace: function (params) {
-            var url = expand(this.route.pattern, params);
-            self.replace(url, {sameRoute: true});
-          }
-        };
-      } else {
-        this.currentRoute = {
-          isNotFound: true,
-          href: href
-        };
+    stop: function () {
+      if (this.started) {
+        this.history.stop();
+        delete this.history;
+        this.started = false;
       }
-    }
-  },
+    },
 
-  isCurrentRoute: function (route, renderRoute) {
-    this.makeCurrentRoute();
-
-    if (this.currentRoute.route === route) {
-      if (renderRoute) {
-        this.currentRoute.isNew = this.currentRoute.times-- > 0;
+    compile: function () {
+      if (this.routesChanged) {
+        this.compiledRoutes = routism.compile(this.routes);
+        this.routesChanged = false;
       }
-      return this.currentRoute;
-    }
-  },
+    },
 
-  add: function (pattern) {
-    var route = {pattern: pattern};
-    this.routes.push({pattern: pattern, route: route});
-    this.routesChanged = true;
-    return route;
-  },
+    isNotFound: function () {
+      if (this.currentRoute.isNotFound) {
+        return this.currentRoute;
+      }
+    },
 
-  pushOrReplace: function (pushReplace, url, options) {
-    if ((options && options.force) || !this.currentRoute || this.currentRoute.expandedUrl != url) {
-      this.history[pushReplace](url);
+    makeCurrentRoute: function () {
       var location = this.history.location();
+      var href = location.pathname + location.search;
 
-      if (options && options.sameRoute) {
-        this.currentRoute.href = location.pathname + location.search;
-        this.currentRoute.expandedUrl = url;
-      } else {
-        delete this.currentRoute;
-        this.makeCurrentRoute();
+      if (!this.currentRoute || this.currentRoute.href != href) {
+        this.compile();
+        var routeRecognised = this.compiledRoutes.recognise(location.pathname);
+
+        if (routeRecognised) {
+          var search = location.search && parseSearch(location.search);
+          var paramArray = search
+            ? search.concat(routeRecognised.params)
+            : routeRecognised.params;
+
+          var params = associativeArrayToObject(paramArray);
+
+          var expandedUrl = expand(routeRecognised.route.pattern, params);
+          var self = this;
+
+          this.currentRoute = {
+            route: routeRecognised.route,
+            params: params,
+            href: href,
+            expandedUrl: expandedUrl,
+            times: 1,
+            replace: function (params) {
+              var url = expand(this.route.pattern, params);
+              self.replace(url, {sameRoute: true});
+            }
+          };
+        } else {
+          this.currentRoute = {
+            isNotFound: true,
+            href: href
+          };
+        }
       }
+    },
+
+    isCurrentRoute: function (route, renderRoute) {
+      this.makeCurrentRoute();
+
+      if (this.currentRoute.route === route) {
+        if (renderRoute) {
+          this.currentRoute.isNew = this.currentRoute.times-- > 0;
+        }
+        return this.currentRoute;
+      }
+    },
+
+    add: function (pattern) {
+      var route = {pattern: pattern};
+      this.routes.push({pattern: pattern, route: route});
+      this.routesChanged = true;
+      return route;
+    },
+
+    pushOrReplace: function (pushReplace, url, options) {
+      if ((options && options.force) || !this.currentRoute || this.currentRoute.expandedUrl != url) {
+        this.history[pushReplace](url);
+        var location = this.history.location();
+
+        if (options && options.sameRoute) {
+          this.currentRoute.href = location.pathname + location.search;
+          this.currentRoute.expandedUrl = url;
+        } else {
+          delete this.currentRoute;
+          this.makeCurrentRoute();
+        }
+      }
+    },
+
+    push: function (url, options) {
+      this.pushOrReplace('push', url, options);
+    },
+
+    replace: function (url, options) {
+      this.pushOrReplace('replace', url, options);
     }
-  },
+  };
+}
 
-  push: function (url, options) {
-    this.pushOrReplace('push', url, options);
-  },
-
-  replace: function (url, options) {
-    this.pushOrReplace('replace', url, options);
-  }
-};
+var routes;
 
 function parseSearch(search) {
   return search && search.substring(1).split('&').map(function (param) {
@@ -125,11 +129,13 @@ function parseSearch(search) {
 var popstateListener;
 
 exports.start = function (history) {
+  routes = createRoutes();
   routes.start(history);
 };
 
 exports.stop = function () {
   routes.stop();
+  routes = undefined;
 };
 
 exports.route = function (pattern) {
