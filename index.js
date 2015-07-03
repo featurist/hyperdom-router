@@ -118,7 +118,7 @@ function createRoutes() {
   };
 }
 
-var routes;
+var routes = createRoutes();
 
 function parseSearch(search) {
   return search && search.substring(1).split('&').map(function (param) {
@@ -129,7 +129,9 @@ function parseSearch(search) {
 var popstateListener;
 
 exports.start = function (history) {
-  routes = createRoutes();
+  if (!routes) {
+    routes = createRoutes();
+  }
   routes.start(history);
 };
 
@@ -141,7 +143,7 @@ exports.stop = function () {
 exports.route = function (pattern) {
   var route = routes.add(pattern);
 
-  return function (paramBindings, render) {
+  function routeFn (paramBindings, render) {
     if (typeof paramBindings === 'function') {
       render = paramBindings;
       paramBindings = undefined;
@@ -252,7 +254,23 @@ exports.route = function (pattern) {
         return render(currentRoute.params);
       }
     }
+  }
+
+  var _underRegExp;
+  function underRegExp() {
+    if (!_underRegExp) {
+      _underRegExp = new RegExp('^' + routism.compilePattern(pattern));
+    }
+
+    return _underRegExp;
+  }
+  routeFn.under = function (fn) {
+    if (underRegExp().test(routes.history.location().pathname)) {
+      return fn();
+    }
   };
+  
+  return routeFn;
 };
 
 exports.notFound = function (render) {

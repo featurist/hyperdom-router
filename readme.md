@@ -162,6 +162,35 @@ route(bindings, function () {
 
     Where the object keys are the parameter names, and the values are the bindings onto the model.
 
+### under
+
+Hierarchies of routes can be made by using `route.under(render)`, which executes the **render function** if the current location is on or under the route.
+
+Let's say we have a route:
+
+```js
+var posts = router('/posts');
+```
+
+You can use `posts.under()` to match on URLs like `/posts` or `/posts/1` or `/posts/1/comments`, etc.
+
+```js
+function render() {
+  return h('div',
+    posts.under(function () {
+      return h('div',
+        posts(function () {
+          // show all posts
+        }),
+        post(function (params) {
+          // show just one post
+        })
+      });
+    })
+  );
+}
+```
+
 ## route instances
 
 ```js

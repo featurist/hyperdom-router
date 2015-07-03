@@ -1,6 +1,6 @@
 var plastiq = require('plastiq');
 var h = plastiq.html;
-var router = require('..');
+var router = require('../..');
 var browser = require('browser-monkey').scope('.test');
 var expect = require('chai').expect;
 
@@ -150,25 +150,157 @@ describe('plastiq router', function () {
   });
 
   it("doesn't navigate if already on the route", function () {
+    var root = router.route('/');
     var a = router.route('/a');
 
     function render() {
       return h('div',
+        root(function () {
+          return h('h1', 'root');
+        }),
         a(function () {
           return a().link('a');
         })
       );
     }
 
+    setLocation('/');
     setLocation('/a');
     mount(render);
 
-    var placeInHistory = history.length;
     return browser.find('a', {text: 'a'}).click().then(function () {
-      return wait(20);
-    }).then(function () {
-      expect(history.length).to.equal(placeInHistory);
+      history.back();
+      return browser.find('h1', {text: 'root'}).shouldExist();
     });
+  });
+
+  it('can accept locations under a route', function () {
+    var root = router.route('/');
+    var person = router.route('/people/:name');
+    var personFriends = router.route('/people/:name/friends');
+
+    function render() {
+      return h('div',
+        root(function () {
+          return h('div',
+            h('h1', 'root'),
+            person({name: 'jack'}).link('jack')
+          );
+        }),
+        person.under(function () {
+          return h('div',
+            h('h1', 'people'),
+            person(function (params) {
+              return h('div',
+                h('h1', 'person: ' + params.name),
+                personFriends({name: params.name}).link('friends')
+              );
+            }),
+            personFriends(function (params) {
+              return h('h1', 'friends of ' + params.name);
+            })
+          );
+        })
+      );
+    }
+
+    setLocation('/');
+    mount(render);
+
+    return Promise.all([
+      browser.find('h1', {text: 'root'}).shouldExist(),
+      browser.find('h1', {text: 'people'}).shouldNotExist()
+    ]).then(function () {
+      return browser.find('a', {text: 'jack'}).click();
+    }).then(function () {
+      return browser.find('h1', {text: 'person: jack'}).shouldExist();
+    }).then(function () {
+      return browser.find('a', {text: 'friends'}).click();
+    }).then(function () {
+      return browser.find('h1', {text: 'friends of jack'}).shouldExist();
+    });
+  });
+
+  it("can navigate to a route using push", function () {
+    var root = router.route('/');
+    var a = router.route('/a');
+    var b = router.route('/b/:id');
+
+    function render() {
+      return h('div',
+        root(function () {
+          return h('h1', 'root');
+        }),
+        a(function () {
+          return h('div',
+            h('h1', 'a'),
+              h('button', {onclick: function () {
+              b({id: 'asdf'}).push();
+            }}, 'b')
+          );
+        }),
+        b(function (params) {
+          return h('h1', 'b: ' + params.id);
+        })
+      );
+    }
+
+    setLocation('/');
+    setLocation('/a');
+    mount(render);
+
+    return browser.find('button', {text: 'b'}).click().then(function () {
+      return browser.find('h1', {text: 'b'}).shouldExist().then(function () {
+        history.back();
+        return browser.find('h1', {text: 'a'}).shouldExist();
+      });
+    });
+  });
+
+  it("can navigate to a route using replace", function () {
+    var root = router.route('/');
+    var a = router.route('/a');
+    var b = router.route('/b/:id');
+
+    function render() {
+      return h('div',
+        root(function () {
+          return h('h1', 'root');
+        }),
+        a(function () {
+          return h('div',
+            h('h1', 'a'),
+              h('button', {onclick: function () {
+              b({id: 'asdf'}).replace();
+            }}, 'b')
+          );
+        }),
+        b(function (params) {
+          return h('h1', 'b: ' + params.id);
+        })
+      );
+    }
+
+    setLocation('/');
+    setLocation('/a');
+    mount(render);
+
+    return browser.find('button', {text: 'b'}).click().then(function () {
+      return browser.find('h1', {text: 'b'}).shouldExist().then(function () {
+        history.back();
+        return browser.find('h1', {text: 'root'}).shouldExist();
+      });
+    });
+  });
+
+  it('can return the href for a given route', function () {
+    var a = router.route('/a');
+    expect(a().href).to.equal('/a');
+  });
+
+  it('can return the href for a given route with params', function () {
+    var a = router.route('/a/:id');
+    expect(a({id: 'asdf', optional: 'yo'}).href).to.equal('/a/asdf?optional=yo');
   });
 });
 
