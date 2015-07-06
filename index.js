@@ -102,6 +102,9 @@ function createRoutes() {
           this.currentRoute.href = location.pathname + location.search;
           this.currentRoute.expandedUrl = url;
         } else {
+          if (this.currentRoute.ondeparture) {
+            this.currentRoute.ondeparture();
+          }
           delete this.currentRoute;
           this.makeCurrentRoute();
         }
@@ -206,6 +209,11 @@ exports.route = function (pattern) {
 
       if (currentRoute) {
         if (paramBindings) {
+          var onarrival = paramBindings.onarrival;
+          delete paramBindings.onarrival;
+          currentRoute.ondeparture = paramBindings.ondeparture;
+          delete paramBindings.ondeparture;
+
           if (currentRoute.isNew) {
             Object.keys(currentRoute.params).forEach(function (param) {
               var value = currentRoute.params[param];
@@ -218,6 +226,10 @@ exports.route = function (pattern) {
                 }
               }
             });
+
+            if (onarrival) {
+              onarrival();
+            }
           } else {
             var newParams = {};
 

@@ -65,6 +65,51 @@ describe('plastiq router', function () {
     });
   });
 
+  it('calls arrival departure events', function () {
+    var a = router.route('/a');
+    var b = router.route('/b');
+    var c = router.route('/c');
+
+    function render(model) {
+      return h('div',
+        a(function () {
+          return h('h1', 'route: a', b().link('b'));
+        }),
+        b({
+          onarrival: function () {
+            model.event = 'arrived at b';
+          },
+          ondeparture: function () {
+            model.event = 'departed from b'
+          }
+        }, function () {
+          return h('h1', 'route: b', c().link('c'));
+        }),
+        c(function () {
+          return h('h1', 'route: c');
+        })
+      );
+    }
+
+    var model = {};
+    setLocation('/a');
+    mount(render, model);
+
+    return browser.find('h1', {text: 'route: a'}).shouldExist().then(function () {
+      return browser.find('a', {text: 'b'}).click();
+    }).then(function () {
+      return browser.find('h1', {text: 'route: b'}).shouldExist();
+    }).then(function () {
+      expect(model.event).to.equal('arrived at b');
+    }).then(function () {
+      return browser.find('a', {text: 'c'}).click();
+    }).then(function () {
+      return browser.find('h1', {text: 'route: c'}).shouldExist();
+    }).then(function () {
+      expect(model.event).to.equal('departed from b');
+    });
+  });
+
   it('shows 404 when route not found', function () {
     var a = router.route('/a');
 

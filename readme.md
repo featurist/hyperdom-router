@@ -162,6 +162,27 @@ route(bindings, function () {
 
     Where the object keys are the parameter names, and the values are the bindings onto the model.
 
+### onarrival, ondeparture
+
+You can setup or cleanup your model on the events `onarrival` and `ondeparture`:
+
+```js
+route(
+  {
+    onarrival: function () {
+      // setup model
+    },
+
+    ondeparture: function () {
+      // cleanup model
+    }
+  },
+  functon () {
+    return vdom;
+  }
+);
+```
+
 ### under
 
 Hierarchies of routes can be made by using `route.under(render)`, which executes the **render function** if the current location is on or under the route.
