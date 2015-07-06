@@ -215,7 +215,9 @@ exports.route = function (pattern) {
           delete paramBindings.ondeparture;
 
           if (currentRoute.isNew) {
-            Object.keys(currentRoute.params).forEach(function (param) {
+            var params = Object.keys(currentRoute.params);
+            for (var n = 0; n < params.length; n++) {
+              var param = params[n];
               var value = currentRoute.params[param];
 
               var paramBinding = paramBindings[param];
@@ -225,7 +227,7 @@ exports.route = function (pattern) {
                   binding.set(value);
                 }
               }
-            });
+            }
 
             if (onarrival) {
               onarrival();
@@ -233,9 +235,11 @@ exports.route = function (pattern) {
           } else {
             var newParams = {};
 
-            Object.keys(currentRoute.params).forEach(function (key) {
-              newParams[key] = currentRoute.params[key];
-            });
+            var params = Object.keys(currentRoute.params);
+            for(var n = 0; n < params.length; n++) {
+              var param = params[n];
+              newParams[param] = currentRoute.params[param];
+            }
 
             var bindings = Object.keys(paramBindings).map(function (key) {
               return {
@@ -251,12 +255,13 @@ exports.route = function (pattern) {
             }
 
             if (allBindingsHaveGetters()) {
-              bindings.forEach(function (b) {
+              for(var n = 0; n < bindings.length; n++) {
+                var b = bindings[n];
                 if (b.binding.get) {
                   var value = b.binding.get();
                   newParams[b.key] = value;
                 }
-              });
+              }
 
               currentRoute.replace(newParams);
             }
@@ -296,9 +301,10 @@ exports.notFound = function (render) {
 function associativeArrayToObject(array) {
   var o = {};
 
-  array.forEach(function (item) {
-    o[item[0]] = item[1];
-  });
+  for(var n = 0; n < array.length; n++) {
+    var pair = array[n];
+    o[pair[0]] = pair[1];
+  }
 
   return o;
 }
