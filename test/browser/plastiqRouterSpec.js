@@ -107,6 +107,16 @@ describe('plastiq router', function () {
       return browser.find('h1', {text: 'route: c'}).shouldExist();
     }).then(function () {
       expect(model.event).to.equal('departed from b');
+    }).then(function () {
+      history.back();
+      return browser.find('h1', {text: 'route: b'}).shouldExist();
+    }).then(function () {
+      expect(model.event).to.equal('arrived at b');
+    }).then(function () {
+      history.back();
+      return browser.find('h1', {text: 'route: a'}).shouldExist();
+    }).then(function () {
+      expect(model.event).to.equal('departed from b');
     });
   });
 

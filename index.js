@@ -55,6 +55,10 @@ function createRoutes() {
           var expandedUrl = expand(routeRecognised.route.pattern, params);
           var self = this;
 
+          if (this.currentRoute && this.currentRoute.ondeparture) {
+            this.currentRoute.ondeparture();
+          }
+
           this.currentRoute = {
             route: routeRecognised.route,
             params: params,
