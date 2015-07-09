@@ -212,6 +212,8 @@ function render() {
 }
 ```
 
+If you don't pass a function to `route.under()` it will return an object with an `active` field, set to `true` if the current URL is on or under the route, or `false` otherwise.
+
 ## route instances
 
 ```js

@@ -282,8 +282,16 @@ exports.route = function (pattern) {
     return _underRegExp;
   }
   routeFn.under = function (fn) {
-    if (underRegExp().test(routes.history.location().pathname)) {
-      return fn();
+    var active = underRegExp().test(routes.history.location().pathname);
+
+    if (fn) {
+      if (active) {
+        return fn();
+      }
+    } else {
+      return {
+        active: active
+      };
     }
   };
   

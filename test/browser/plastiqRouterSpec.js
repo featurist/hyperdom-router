@@ -256,12 +256,15 @@ describe('plastiq router', function () {
       browser.find('h1', {text: 'root'}).shouldExist(),
       browser.find('h1', {text: 'people'}).shouldNotExist()
     ]).then(function () {
+      expect(person.under().active).to.be.false;
       return browser.find('a', {text: 'jack'}).click();
     }).then(function () {
       return browser.find('h1', {text: 'person: jack'}).shouldExist();
     }).then(function () {
+      expect(person.under().active).to.be.true;
       return browser.find('a', {text: 'friends'}).click();
     }).then(function () {
+      expect(person.under().active).to.be.true;
       return browser.find('h1', {text: 'friends of jack'}).shouldExist();
     });
   });
