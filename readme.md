@@ -116,7 +116,15 @@ Starts the router, adding event handlers for navigation.
 router.stop();
 ```
 
-Stops the router, removing event handlers for navigation. This is particularly useful in test teardown.
+Stops the router, removing event handlers for navigation. However does not remove existing routes, for that see `router.clear()`. This is particularly useful in test teardown.
+
+## clear
+
+```js
+router.clear();
+```
+
+Clears all routes, removes event handlers. This is a complete teardown of the router, unlike `router.stop()`.
 
 ## create a route
 

@@ -140,6 +140,10 @@ exports.start = function (history) {
 
 exports.stop = function () {
   routes.stop();
+};
+
+exports.clear = function () {
+  routes.stop();
   routes = undefined;
 };
 

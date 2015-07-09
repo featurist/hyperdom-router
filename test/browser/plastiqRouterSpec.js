@@ -16,7 +16,7 @@ describe('plastiq router', function () {
   });
 
   afterEach(function () {
-    router.stop();
+    router.clear();
     unmount();
   });
 
