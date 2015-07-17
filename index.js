@@ -217,7 +217,7 @@ exports.route = function (pattern) {
 
       if (currentRoute) {
         if (paramBindings) {
-          var onarrival = h.refreshify(paramBindings.onarrival, {refresh: 'promise'});
+          var onarrival = paramBindings.onarrival && h.refreshify(paramBindings.onarrival, {refresh: 'promise'});
           delete paramBindings.onarrival;
           currentRoute.ondeparture = paramBindings.ondeparture;
           delete paramBindings.ondeparture;
