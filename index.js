@@ -112,6 +112,10 @@ function createRoutes() {
           delete this.currentRoute;
           this.makeCurrentRoute();
         }
+
+        if (refresh) {
+          refresh();
+        }
       }
     },
 
@@ -223,54 +227,14 @@ exports.route = function (pattern) {
           delete paramBindings.ondeparture;
 
           if (currentRoute.isNew) {
-            var params = Object.keys(currentRoute.params);
-            for (var n = 0; n < params.length; n++) {
-              var param = params[n];
-              var value = currentRoute.params[param];
-
-              var paramBinding = paramBindings[param];
-              if (paramBinding) {
-                var binding = h.binding(paramBinding, {refresh: 'promise'})
-                if (binding.set) {
-                  binding.set(value);
-                }
-              }
-            }
+            setParamBindings(currentRoute.params, paramBindings);
 
             if (onarrival) {
               onarrival(params);
             }
           } else {
-            var newParams = {};
-
-            var params = Object.keys(currentRoute.params);
-            for(var n = 0; n < params.length; n++) {
-              var param = params[n];
-              newParams[param] = currentRoute.params[param];
-            }
-
-            var bindings = Object.keys(paramBindings).map(function (key) {
-              return {
-                key: key,
-                binding: h.binding(paramBindings[key])
-              };
-            });
-
-            function allBindingsHaveGetters() {
-              return !bindings.some(function (b) {
-                return !b.binding.get;
-              });
-            }
-
-            if (allBindingsHaveGetters()) {
-              for(var n = 0; n < bindings.length; n++) {
-                var b = bindings[n];
-                if (b.binding.get) {
-                  var value = b.binding.get();
-                  newParams[b.key] = value;
-                }
-              }
-
+            var newParams = getParamBindings(currentRoute.params, paramBindings);
+            if (newParams) {
               currentRoute.replace(newParams);
             }
           }
@@ -305,6 +269,55 @@ exports.route = function (pattern) {
   
   return routeFn;
 };
+
+function setParamBindings(params, paramBindings) {
+  var paramKeys = Object.keys(params);
+  for (var n = 0; n < paramKeys.length; n++) {
+    var param = paramKeys[n];
+    var value = params[param];
+
+    var paramBinding = paramBindings[param];
+    if (paramBinding) {
+      var binding = h.binding(paramBinding, {refresh: 'promise'})
+      if (binding.set) {
+        binding.set(value);
+      }
+    }
+  }
+}
+
+function getParamBindings(params, paramBindings) {
+  var bindings = Object.keys(paramBindings).map(function (key) {
+    return {
+      key: key,
+      binding: h.binding(paramBindings[key])
+    };
+  });
+
+  var allBindingsHaveGetters = !bindings.some(function (b) {
+    return !b.binding.get;
+  });
+
+  if (allBindingsHaveGetters) {
+    var newParams = {};
+
+    var paramKeys = Object.keys(params);
+    for(var n = 0; n < paramKeys.length; n++) {
+      var param = paramKeys[n];
+      newParams[param] = params[param];
+    }
+
+    for(var n = 0; n < bindings.length; n++) {
+      var b = bindings[n];
+      if (b.binding.get) {
+        var value = b.binding.get();
+        newParams[b.key] = value;
+      }
+    }
+
+    return newParams;
+  }
+}
 
 exports.notFound = function (render) {
   var notFoundRoute = routes.isNotFound();

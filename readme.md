@@ -149,7 +149,7 @@ route(function (params) {
 
 If the route is active, returns the `vdom` passing the `params` taken from the route to the function. If the route is not active, `undefined` is returned.
 
-* `params` - the params taken from the route, these can be from `:param` elements in the route pattern or query string parameters.
+* `params` - the parameters taken from the route, these can be from `:param` elements in the route pattern or query string parameters.
 
 ### active routes
 
@@ -177,7 +177,7 @@ You can setup or cleanup your model on the events `onarrival` and `ondeparture`:
 ```js
 route(
   {
-    onarrival: function () {
+    onarrival: function (params) {
       // setup model
     },
 
@@ -190,6 +190,8 @@ route(
   }
 );
 ```
+
+* `params` - the parameters taken from the route, these can be from `:param` elements in the route pattern or query string parameters.
 
 ### under
 

@@ -229,53 +229,55 @@ describe('plastiq router', function () {
     });
   });
 
-  it('can accept locations under a route', function () {
-    var root = router.route('/');
-    var person = router.route('/people/:name');
-    var personFriends = router.route('/people/:name/friends');
+  describe('under', function () {
+    it('can accept locations under a route', function () {
+      var root = router.route('/');
+      var person = router.route('/people/:name');
+      var personFriends = router.route('/people/:name/friends');
 
-    function render() {
-      return h('div',
-        root(function () {
-          return h('div',
-            h('h1', 'root'),
-            person({name: 'jack'}).link('jack')
-          );
-        }),
-        person.under(function () {
-          return h('div',
-            h('h1', 'people'),
-            person(function (params) {
-              return h('div',
-                h('h1', 'person: ' + params.name),
-                personFriends({name: params.name}).link('friends')
-              );
-            }),
-            personFriends(function (params) {
-              return h('h1', 'friends of ' + params.name);
-            })
-          );
-        })
-      );
-    }
+      function render() {
+        return h('div',
+          root(function () {
+            return h('div',
+              h('h1', 'root'),
+              person({name: 'jack'}).link('jack')
+            );
+          }),
+          person.under(function () {
+            return h('div',
+              h('h1', 'people'),
+              person(function (params) {
+                return h('div',
+                  h('h1', 'person: ' + params.name),
+                  personFriends({name: params.name}).link('friends')
+                );
+              }),
+              personFriends(function (params) {
+                return h('h1', 'friends of ' + params.name);
+              })
+            );
+          })
+        );
+      }
 
-    setLocation('/');
-    mount(render);
+      setLocation('/');
+      mount(render);
 
-    return Promise.all([
-      browser.find('h1', {text: 'root'}).shouldExist(),
-      browser.find('h1', {text: 'people'}).shouldNotExist()
-    ]).then(function () {
-      expect(person.under().active).to.be.false;
-      return browser.find('a', {text: 'jack'}).click();
-    }).then(function () {
-      return browser.find('h1', {text: 'person: jack'}).shouldExist();
-    }).then(function () {
-      expect(person.under().active).to.be.true;
-      return browser.find('a', {text: 'friends'}).click();
-    }).then(function () {
-      expect(person.under().active).to.be.true;
-      return browser.find('h1', {text: 'friends of jack'}).shouldExist();
+      return Promise.all([
+        browser.find('h1', {text: 'root'}).shouldExist(),
+        browser.find('h1', {text: 'people'}).shouldNotExist()
+      ]).then(function () {
+        expect(person.under().active).to.be.false;
+        return browser.find('a', {text: 'jack'}).click();
+      }).then(function () {
+        return browser.find('h1', {text: 'person: jack'}).shouldExist();
+      }).then(function () {
+        expect(person.under().active).to.be.true;
+        return browser.find('a', {text: 'friends'}).click();
+      }).then(function () {
+        expect(person.under().active).to.be.true;
+        return browser.find('h1', {text: 'friends of jack'}).shouldExist();
+      });
     });
   });
 
