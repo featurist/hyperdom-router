@@ -2,7 +2,6 @@ var routism = require('routism');
 var plastiq = require('plastiq');
 var h = plastiq.html;
 var refresh;
-var rendering = require('plastiq/rendering');
 
 function createRoutes() {
   return {
@@ -64,10 +63,10 @@ function createRoutes() {
             params: params,
             href: href,
             expandedUrl: expandedUrl,
-            times: 1,
             replace: function (params) {
               var url = expand(this.route.pattern, params);
-              self.replace(url, {sameRoute: true});
+              this.params = params;
+              self.replace(url);
             }
           };
         } else {
@@ -79,13 +78,30 @@ function createRoutes() {
       }
     },
 
-    isCurrentRoute: function (route, renderRoute) {
+    setupRender: function () {
+      if (h.currentRender && !h.currentRender.routerEstablished) {
+        h.currentRender.routerEstablished = true;
+
+        this.lastHref = this.currentHref;
+
+        var location = this.history.location();
+        var href = location.pathname + location.search;
+        this.currentHref = href;
+
+        this._isNewHref = this.lastHref != this.currentHref;
+
+        this.makeCurrentRoute();
+      }
+    },
+
+    isNewHref: function () {
+      return this._isNewHref;
+    },
+
+    isCurrentRoute: function (route) {
       this.makeCurrentRoute();
 
       if (this.currentRoute.route === route) {
-        if (renderRoute) {
-          this.currentRoute.isNew = this.currentRoute.times-- > 0;
-        }
         return this.currentRoute;
       }
     },
@@ -102,15 +118,8 @@ function createRoutes() {
         this.history[pushReplace](url);
         var location = this.history.location();
 
-        if (options && options.sameRoute) {
-          this.currentRoute.href = location.pathname + location.search;
-          this.currentRoute.expandedUrl = url;
-        } else {
-          if (this.currentRoute.ondeparture) {
-            this.currentRoute.ondeparture();
-          }
-          delete this.currentRoute;
-          this.makeCurrentRoute();
+        if (this.currentRoute.ondeparture) {
+          this.currentRoute.ondeparture();
         }
 
         if (refresh) {
@@ -125,6 +134,54 @@ function createRoutes() {
 
     replace: function (url, options) {
       this.pushOrReplace('replace', url, options);
+    }
+  };
+}
+
+function escapeRegex(pattern) {
+  return pattern.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+}
+
+var splatVariableRegex = /(\:([a-z\-_]+)\\\*)/ig;
+var variableRegex = /(:([-a-z_]+))/ig;
+
+function compilePattern(pattern) {
+  return escapeRegex(pattern)
+    .replace(splatVariableRegex, "(.+)")
+    .replace(variableRegex, "([^\/]+)");
+}
+
+function preparePattern(pattern) {
+  var match;
+  var variableRegex = new RegExp('(:([-a-z_]+))', 'ig');
+  var variables = [];
+
+  while (match = variableRegex.exec(pattern)) {
+    variables.push(match[2]);
+  }
+
+  var patternRegex = new RegExp('^' + compilePattern(pattern));
+
+  return {
+    regex: patternRegex,
+    variables: variables
+  };
+}
+
+function matchUnder(pattern) {
+  var patternVariables = preparePattern(pattern);
+
+  return function (path) {
+    var match = patternVariables.regex.exec(path);
+
+    if (match) {
+      var params = {};
+
+      for (var n = 1; n < match.length; n++) {
+        params[patternVariables.variables[n - 1]] = match[n];
+      }
+
+      return params;
     }
   };
 }
@@ -216,8 +273,11 @@ exports.route = function (pattern) {
         throw new Error("router not started yet, start with require('plastiq-router').start([history])");
       }
 
+      routes.setupRender();
+
       refresh = h.refresh;
-      var currentRoute = routes.isCurrentRoute(route, true);
+      var currentRoute = routes.isCurrentRoute(route);
+      var isNew = routes.isNewHref();
 
       if (currentRoute) {
         if (paramBindings) {
@@ -226,7 +286,7 @@ exports.route = function (pattern) {
           currentRoute.ondeparture = paramBindings.ondeparture;
           delete paramBindings.ondeparture;
 
-          if (currentRoute.isNew) {
+          if (isNew) {
             setParamBindings(currentRoute.params, paramBindings);
 
             if (onarrival) {
@@ -248,21 +308,44 @@ exports.route = function (pattern) {
   var _underRegExp;
   function underRegExp() {
     if (!_underRegExp) {
-      _underRegExp = new RegExp('^' + routism.compilePattern(pattern));
+      _underRegExp = matchUnder(pattern);
     }
 
     return _underRegExp;
   }
-  routeFn.under = function (fn) {
-    var active = underRegExp().test(routes.history.location().pathname);
+
+  routeFn.under = function (_paramBindings, _fn) {
+    var paramBindings, fn;
+
+    if (typeof _paramBindings === 'function') {
+      fn = _paramBindings;
+    } else {
+      paramBindings = _paramBindings;
+      fn = _fn;
+    }
+
+    var params = underRegExp()(routes.history.location().pathname);
+
+    if (params && paramBindings && fn) {
+      routes.setupRender();
+
+      if (routes.isNewHref()) {
+        setParamBindings(params, paramBindings);
+      } else {
+        var newParams = getParamBindings(routes.currentRoute.params, paramBindings);
+        if (newParams) {
+          routes.currentRoute.replace(newParams);
+        }
+      }
+    }
 
     if (fn) {
-      if (active) {
-        return fn();
+      if (params) {
+        return fn(params);
       }
     } else {
       return {
-        active: active
+        active: !!params
       };
     }
   };

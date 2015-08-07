@@ -100,7 +100,7 @@ describe('plastiq router', function () {
     }).then(function () {
       return browser.find('h1', {text: 'route: b'}).shouldExist();
     }).then(function () {
-      expect(model.event).to.equal('arrived at b');
+      expect(model.event, 'first').to.equal('arrived at b');
     }).then(function () {
       return browser.find('a', {text: 'c'}).click();
     }).then(function () {
@@ -111,7 +111,7 @@ describe('plastiq router', function () {
       history.back();
       return browser.find('h1', {text: 'route: b'}).shouldExist();
     }).then(function () {
-      expect(model.event).to.equal('arrived at b');
+      expect(model.event, 'second').to.equal('arrived at b');
     }).then(function () {
       history.back();
       return browser.find('h1', {text: 'route: a'}).shouldExist();
@@ -277,6 +277,75 @@ describe('plastiq router', function () {
       }).then(function () {
         expect(person.under().active).to.be.true;
         return browser.find('h1', {text: 'friends of jack'}).shouldExist();
+      });
+    });
+
+    it('can bind properties when using under', function () {
+      var root = router.route('/');
+      var person = router.route('/people/:name');
+      var personFriends = router.route('/people/:name/friends');
+
+      function render(model) {
+        return h('div',
+          root(function () {
+            return h('div',
+              h('h1', 'root'),
+              person({name: 'jack'}).link('jack')
+            );
+          }),
+          person.under(
+            {
+              name: [model, 'name']
+            },
+            function () {
+              return h('div',
+                h('h1', 'people'),
+                person(function () {
+                  return h('div',
+                    h('h1', 'person: ' + model.name),
+                    personFriends({name: model.name}).link('friends')
+                  );
+                }),
+                personFriends(function () {
+                  return h('div',
+                    h('h1', 'friends of ' + model.name),
+                    h('button.bob', {
+                      onclick: function () {
+                        model.name = 'bob';
+                      }
+                    }, 'show bob')
+                  );
+                })
+              );
+            }
+          )
+        );
+      }
+
+      setLocation('/');
+      mount(render, {});
+
+      return Promise.all([
+        browser.find('h1', {text: 'root'}).shouldExist(),
+        browser.find('h1', {text: 'people'}).shouldNotExist()
+      ]).then(function () {
+        expect(person.under().active).to.be.false;
+        return browser.find('a', {text: 'jack'}).click();
+      }).then(function () {
+        return browser.find('h1', {text: 'person: jack'}).shouldExist();
+      }).then(function () {
+        expect(person.under().active).to.be.true;
+        return browser.find('a', {text: 'friends'}).click();
+      }).then(function () {
+        expect(person.under().active).to.be.true;
+        return browser.find('h1', {text: 'friends of jack'}).shouldExist();
+      }).then(function () {
+        return browser.find('button.bob').click();
+      }).then(function () {
+        return browser.find('h1', {text: 'friends of bob'}).shouldExist();
+      }).then(function () {
+        expect(person.under().active).to.be.true;
+        expect(location.pathname).to.equal('/people/bob/friends');
       });
     });
   });
