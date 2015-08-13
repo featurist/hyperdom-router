@@ -349,6 +349,8 @@ exports.route = function (pattern) {
       };
     }
   };
+
+  routeFn.pattern = pattern;
   
   return routeFn;
 };

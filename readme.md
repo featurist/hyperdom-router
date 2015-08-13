@@ -200,7 +200,7 @@ Hierarchies of routes can be made by using `route.under(render)`, which executes
 Let's say we have a route:
 
 ```js
-var posts = router('/posts');
+var posts = router.route('/posts');
 ```
 
 You can use `posts.under()` to match on URLs like `/posts` or `/posts/1` or `/posts/1/comments`, etc.
@@ -223,6 +223,16 @@ function render() {
 ```
 
 If you don't pass a function to `route.under()` it will return an object with an `active` field, set to `true` if the current URL is on or under the route, or `false` otherwise.
+
+## pattern
+
+You can access the route's pattern. Compatible with express, so they're useful if you're trying to match routes on the server-side.
+
+```js
+var posts = router.route('/posts/:id');
+
+app.get(posts.pattern, function (req, res) { ... });
+```
 
 ## route instances
 
