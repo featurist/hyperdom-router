@@ -200,7 +200,7 @@ exports.start = function (options) {
   if (!routes) {
     routes = createRoutes();
   }
-  routes.start(options.history || exports.historyApi);
+  routes.start((options && options.history) || exports.historyApi);
 };
 
 exports.stop = function () {

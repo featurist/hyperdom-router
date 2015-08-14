@@ -14,7 +14,11 @@ function describePlastiqRouter(apiName) {
     });
 
     beforeEach(function () {
-      router.start({history: api});
+      var options = apiName == 'historyApi'
+        ? undefined
+        : {history: api};
+
+      router.start(options);
     });
 
     afterEach(function () {
