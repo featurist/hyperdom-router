@@ -9,7 +9,7 @@ function createRoutes() {
     routesChanged: false,
 
     start: function (history) {
-      this.history = history || exports.historyApi;
+      this.history = history;
       this.history.start();
       this.started = true;
     },
@@ -196,11 +196,11 @@ function parseSearch(search) {
 
 var popstateListener;
 
-exports.start = function (history) {
+exports.start = function (options) {
   if (!routes) {
     routes = createRoutes();
   }
-  routes.start(history);
+  routes.start(options.history || exports.historyApi);
 };
 
 exports.stop = function () {
@@ -501,8 +501,12 @@ exports.hash = {
     var self = this;
     if (!this.listening) {
       this.hashchangeListener = function(ev) {
-        if (refresh) {
-          refresh();
+        if (!self.pushed) {
+          if (refresh) {
+            refresh();
+          }
+        } else {
+          self.pushed = false;
         }
       }
       window.addEventListener('hashchange', this.hashchangeListener);
@@ -510,6 +514,7 @@ exports.hash = {
     }
   },
   stop: function () {
+    this.listening = false;
     window.removeEventListener('hashchange', this.hashchangeListener);
   },
   location: function () {
@@ -523,6 +528,7 @@ exports.hash = {
     }
   },
   push: function (url) {
+    this.pushed = true;
     window.location.hash = url.replace(/^\//, '');
   },
   state: function (state) {
