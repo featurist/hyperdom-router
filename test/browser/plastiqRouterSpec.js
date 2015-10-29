@@ -439,6 +439,11 @@ function describePlastiqRouter(apiName) {
       var a = router.route('/a/:id');
       expect(a({id: 'asdf', optional: 'yo'}).href).to.equal('/a/asdf?optional=yo');
     });
+
+    it('can return the href for a given route with params', function () {
+      var a = router.route('/a/:id/:path*');
+      expect(a({id: 'asdf/qw er', path: 'a/b c/d', optional: 'yo'}).href).to.equal('/a/asdf%2Fqw%20er/a/b%20c/d?optional=yo');
+    });
   });
 }
 

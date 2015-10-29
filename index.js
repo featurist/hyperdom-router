@@ -450,10 +450,16 @@ function paramToString(p) {
 function expand(pattern, params) {
   var paramsExpanded = {};
 
-  var url = pattern.replace(/:([a-z_][a-z0-9_]*)/gi, function (_, id) {
+  var url = pattern.replace(/:([a-z_][a-z0-9_]*)\*/gi, function (_, id) {
     var param = params[id];
     paramsExpanded[id] = true;
-    return paramToString(param);
+    return encodeURI(paramToString(param));
+  });
+
+  url = url.replace(/:([a-z_][a-z0-9_]*)/gi, function (_, id) {
+    var param = params[id];
+    paramsExpanded[id] = true;
+    return encodeURIComponent(paramToString(param));
   });
 
   var query = Object.keys(params).map(function (key) {
