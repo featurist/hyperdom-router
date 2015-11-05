@@ -306,7 +306,7 @@ exports.route = function (pattern) {
             setParamBindings(currentRoute.params, paramBindings);
 
             if (onarrival) {
-              onarrival(params);
+              onarrival(currentRoute.params);
             }
           } else {
             var newParams = getParamBindings(currentRoute.params, paramBindings);

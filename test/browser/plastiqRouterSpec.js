@@ -73,17 +73,17 @@ function describePlastiqRouter(apiName) {
 
     it('calls arrival departure events', function () {
       var a = router.route('/a');
-      var b = router.route('/b');
+      var b = router.route('/b/:id');
       var c = router.route('/c');
 
       function render(model) {
         return h('div',
           a(function () {
-            return h('h1', 'route: a', b().link('b'));
+            return h('h1', 'route: a', b({id: '1'}).link('b'));
           }),
           b({
-            onarrival: function () {
-              model.event = 'arrived at b';
+            onarrival: function (params) {
+              model.event = 'arrived at b: ' + params.id;
             },
             ondeparture: function () {
               model.event = 'departed from b'
@@ -106,7 +106,7 @@ function describePlastiqRouter(apiName) {
       }).then(function () {
         return browser.find('h1', {text: 'route: b'}).shouldExist();
       }).then(function () {
-        expect(model.event, 'first').to.equal('arrived at b');
+        expect(model.event, 'first').to.equal('arrived at b: 1');
       }).then(function () {
         return browser.find('a', {text: 'c'}).click();
       }).then(function () {
@@ -117,7 +117,7 @@ function describePlastiqRouter(apiName) {
         history.back();
         return browser.find('h1', {text: 'route: b'}).shouldExist();
       }).then(function () {
-        expect(model.event, 'second').to.equal('arrived at b');
+        expect(model.event, 'second').to.equal('arrived at b: 1');
       }).then(function () {
         history.back();
         return browser.find('h1', {text: 'route: a'}).shouldExist();
