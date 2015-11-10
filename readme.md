@@ -1,17 +1,67 @@
 # plastiq-router
 
 * incredibly simple
+* works with History API or Hashes
 * generate links from routes
 * route parameters can be bound to the model
-
-## rewrite + API simplication
-
-Documentation for the 1.x API, can be found [here](https://github.com/featurist/plastiq-router/tree/v1).
+* hierarchical routes
 
 ## install
 
 ```bash
 npm install plastiq-router
+```
+
+# How?
+
+First thing to do is declare your routes.
+
+```js
+var router = require('plastiq-router');
+
+var routes = {
+  home = router.route('/'),
+  posts = router.post('/posts'),
+  post = router.post('/posts/:postId')
+};
+```
+
+Then, at some point you need to start the router.
+
+```js
+router.start();
+```
+
+By default it uses the History API for nice clean URLs, but you can use `#hash` URLs too if you feel strongly about it.
+
+```js
+router.start(router.hash);
+```
+
+In your plastiq render function, just use the different routes to conditionally render different HTML, depending on the current URL:
+
+```js
+function render() {
+  return h('div',
+    routes.home(function () {
+      return h('h1', 'Home');
+    }),
+    routes.post(function (params) {
+      return [
+        h('h1', 'Post ' + params.postId),
+        h('.post', posts[params.postId])
+      ];
+    })
+  );
+}
+```
+
+When the URL is `/` the code inside the `routes.home()` function will render. When the URL is '/posts/blah', the `routes.post()` function will render, being passed the parameters `{postId: 'blah'}`.
+
+You can make links to routes:
+
+```js
+routes.post({postId: 'blah'}).link('My Post on Blah');
 ```
 
 ## example
