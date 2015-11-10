@@ -62,8 +62,17 @@ When the URL is `/` the code inside the `routes.home()` function will render. Wh
 
 ## Link to Routes
 
+You can create a link to a route:
+
 ```js
 routes.post({postId: 'blah'}).link('My Post on Blah');
+```
+
+Sometimes you may want to indicate that this route is the current one and highlight it in CSS by giving it a class:
+
+```js
+var route = routes.post({postId: 'blah'});
+route.link({class: {active: route.active}}, 'My Post on Blah');
 ```
 
 ## Bind the Model
