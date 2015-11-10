@@ -14,7 +14,7 @@ npm install plastiq-router
 
 # How?
 
-First thing to do is declare your routes.
+## Declare Your Routes
 
 ```js
 var router = require('plastiq-router');
@@ -26,7 +26,7 @@ var routes = {
 };
 ```
 
-Then, at some point you need to start the router.
+## Start the Router
 
 ```js
 router.start();
@@ -37,6 +37,8 @@ By default it uses the History API for nice clean URLs, but you can use `#hash` 
 ```js
 router.start(router.hash);
 ```
+
+## Render the Routes
 
 In your plastiq render function, just use the different routes to conditionally render different HTML, depending on the current URL:
 
@@ -56,12 +58,57 @@ function render() {
 }
 ```
 
-When the URL is `/` the code inside the `routes.home()` function will render. When the URL is '/posts/blah', the `routes.post()` function will render, being passed the parameters `{postId: 'blah'}`.
+When the URL is `/` the code inside the `routes.home()` function will render. When the URL is `/posts/blah`, the `routes.post()` function will render, being passed the parameters `{postId: 'blah'}`.
 
-You can make links to routes:
+## Link to Routes
 
 ```js
 routes.post({postId: 'blah'}).link('My Post on Blah');
+```
+
+## Bind the Model
+
+You can bind your model onto a route, so when the model changes, the URL changes, and when the URL changes, the model changes:
+
+```js
+var search = router.route('/search');
+
+function renderSearch(model) {
+  return search({q: [model, 'search']}, function () {
+    h('label', 'Search', h('input', {binding: [model, 'search']}))
+  });
+}
+```
+
+When you type `asdf` into the search box, the URL will become `/search?q=asdf`. If you go to `/search?q=bobo` the search box will contain `bobo`.
+
+## Setting up the Model
+
+You can set your model up when you arrive at a route by setting `onarrival`. If it returns a promise, it will re-render the page when the promise resolves:
+
+```js
+var routes = {
+  var posts = router.route('/posts'),
+  var post = router.route('/posts/:postId')
+};
+
+function renderPosts(model) {
+  function loadPosts() {
+    // return a promise, so we re-render when the posts have loaded
+    return httpism.get('/api/posts').then(function (response) {
+      model.posts = response.body;
+    })
+  }
+
+  return routes.posts({onarrival: loadPosts}, function () {
+    h('ul',
+      model.posts.map(function (post) {
+        // render a link to each post
+        return h('li', routes.post({postId: post.id}).link(post.title));
+      })
+    )
+  });
+}
 ```
 
 ## example
