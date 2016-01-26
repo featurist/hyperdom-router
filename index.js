@@ -83,6 +83,7 @@ Router.prototype.makeCurrentRoute = function () {
         replace: function (params) {
           var url = expand(this.route.pattern, params);
           this.params = params;
+          self.currentHref = url;
           self.replace(url);
         }
       };
