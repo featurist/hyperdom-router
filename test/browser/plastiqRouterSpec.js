@@ -198,7 +198,8 @@ function describePlastiqRouter(apiName) {
       }
 
       setLocation('/a/1');
-      mount(render, {});
+      var model = {};
+      mount(render, model);
 
       return browser.find('h1', {text: 'id: 1'}).shouldExist().then(function () {
         return browser.find('button', {text: 'add'}).click();
@@ -207,6 +208,7 @@ function describePlastiqRouter(apiName) {
       }).then(function () {
         expect(api.location().pathname).to.equal('/a/2');
         expect(api.location().search).to.equal('?optional=yo');
+        expect(model.id).to.equal(2);
       });
     });
 

@@ -4,7 +4,7 @@
   "description": "model driven router for plastiq",
   "main": "index.js",
   "scripts": {
-    "test": "mocha"
+    "test": "karma start --single-run && mocha test/server"
   },
   "author": "Tim Macfarlane <timmacfarlane@gmail.com>",
   "license": "MIT",
