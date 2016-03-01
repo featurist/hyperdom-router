@@ -276,13 +276,13 @@ route(bindings, function () {
 
     Where the object keys are the parameter names, and the values are the bindings onto the model.
 
-    When these parameters change, by default, the URL will replace the old URL. If you want to ensure that changing a parameter moves the browser forward in history, you can name the parameter in the `push` array:
+    When these parameters change, by default, the URL will replace the old URL. If you want to ensure that changing a parameter moves the browser forward in history, you can name the parameter in the `push` object:
 
     ```js
     {
       param1: [model, 'param1'],
       param2: [model, 'param2'],
-      push: ['param1']
+      push: {param1: true}
     }
     ```
 
