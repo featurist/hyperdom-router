@@ -311,7 +311,6 @@ exports.route = function (pattern) {
           delete paramBindings.onarrival;
           currentRoute.ondeparture = paramBindings.ondeparture;
           delete paramBindings.ondeparture;
-          var pushBindings = paramBindings.pushBindings;
 
           if (isNew) {
             setParamBindings(currentRoute.params, paramBindings);
@@ -377,17 +376,15 @@ exports.route = function (pattern) {
 };
 
 function setParamBindings(params, paramBindings) {
-  var paramKeys = Object.keys(params);
+  var paramKeys = Object.keys(paramBindings);
   for (var n = 0; n < paramKeys.length; n++) {
     var param = paramKeys[n];
     var value = params[param];
 
     var paramBinding = paramBindings[param];
-    if (paramBinding) {
-      var binding = h.binding(paramBinding, {refresh: 'promise'})
-      if (binding.set) {
-        binding.set(value);
-      }
+    var binding = h.binding(paramBinding, {refresh: 'promise'})
+    if (binding.set) {
+      binding.set(value);
     }
   }
 }

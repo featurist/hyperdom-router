@@ -14,20 +14,15 @@ function describePlastiqRouter(apiName) {
     });
 
     beforeEach(function () {
+      router.clear();
+      unmount();
+      api.push(originalLocation);
+
       var options = apiName == 'historyApi'
         ? undefined
         : {history: api};
 
       router.start(options);
-    });
-
-    afterEach(function () {
-      router.clear();
-      unmount();
-    });
-
-    after(function () {
-      api.push(originalLocation);
     });
 
     function setLocation(url) {
@@ -255,6 +250,45 @@ function describePlastiqRouter(apiName) {
           expect(api.location().pathname).to.equal('/a/1/1');
           expect(model.a).to.equal('1');
           expect(model.b).to.equal('1');
+        });
+      });
+
+      it('sets the model when going back', function () {
+        var a = router.route('/a');
+
+        function render(model) {
+          return h('div',
+            a({
+              a: [model, 'a'],
+
+              push: {a: true}
+            }, function () {
+              return h('div',
+                h('h1', model.a? 'a: ' + model.a: 'nothing'),
+                h('button', {onclick: function () { model.a = 1; }}, 'set a')
+              );
+            })
+          );
+        }
+
+        setLocation('/a');
+        var model = {};
+        mount(render, model);
+
+        return browser.find('h1', {text: 'nothing'}).shouldExist().then(function () {
+          return browser.find('button', {text: 'set a'}).click();
+        }).then(function () {
+          return browser.find('h1', {text: 'a: 1'}).shouldExist();
+        }).then(function () {
+          expect(model.a).to.equal(1);
+          expect(api.location().pathname).to.equal('/a');
+          expect(api.location().search).to.equal('?a=1');
+          history.back();
+        }).then(function () {
+          return browser.find('h1', {text: 'nothing'}).shouldExist();
+        }).then(function () {
+          expect(model.a).to.be.undefined;
+          expect(api.location().pathname).to.equal('/a');
         });
       });
     }
