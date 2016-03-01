@@ -276,6 +276,18 @@ route(bindings, function () {
 
     Where the object keys are the parameter names, and the values are the bindings onto the model.
 
+    When these parameters change, by default, the URL will replace the old URL. If you want to ensure that changing a parameter moves the browser forward in history, you can name the parameter in the `push` array:
+
+    ```js
+    {
+      param1: [model, 'param1'],
+      param2: [model, 'param2'],
+      push: ['param1']
+    }
+    ```
+
+    Here, if `param2` changes, the URL will be replaced. But if `param1` changes the URL will be pushed, and you can go back to the previous value.
+
 ### onarrival, ondeparture
 
 You can setup or cleanup your model on the events `onarrival` and `ondeparture`:

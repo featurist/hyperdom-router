@@ -80,6 +80,14 @@ Router.prototype.makeCurrentRoute = function () {
         params: params,
         href: href,
         expandedUrl: expandedUrl,
+
+        push: function (params) {
+          var url = expand(this.route.pattern, params);
+          this.params = params;
+          self.currentHref = url;
+          self.push(url);
+        },
+
         replace: function (params) {
           var url = expand(this.route.pattern, params);
           this.params = params;
@@ -131,7 +139,6 @@ Router.prototype.add = function (pattern) {
 Router.prototype.pushOrReplace = function (pushReplace, url, options) {
   if ((options && options.force) || !this.currentRoute || this.currentRoute.expandedUrl != url) {
     this.history[pushReplace](url);
-    var location = this.history.location();
 
     if (this.currentRoute.ondeparture) {
       this.currentRoute.ondeparture();
@@ -211,8 +218,6 @@ function parseSearch(search) {
   });
 }
 
-var popstateListener;
-
 exports.start = function (options) {
   if (!router) {
     router = createRouter();
@@ -238,11 +243,13 @@ exports.route = function (pattern) {
       paramBindings = undefined;
     }
 
+    var currentRoute;
+
     if (!render) {
       var params = paramBindings || {};
       var url = expand(pattern, params);
 
-      var currentRoute = router.started && router.isCurrentRoute(route);
+      currentRoute = router.started && router.isCurrentRoute(route);
 
       return {
         push: function (ev) {
@@ -271,6 +278,8 @@ exports.route = function (pattern) {
 
         link: function () {
           var options;
+          var content;
+
           if (arguments[0] && arguments[0].constructor == Object) {
             options = arguments[0];
             content = Array.prototype.slice.call(arguments, 1);
@@ -293,7 +302,7 @@ exports.route = function (pattern) {
       router.setupRender();
 
       refresh = h.refresh;
-      var currentRoute = router.isCurrentRoute(route);
+      currentRoute = router.isCurrentRoute(route);
       var isNew = router.isNewHref();
 
       if (currentRoute) {
@@ -302,6 +311,7 @@ exports.route = function (pattern) {
           delete paramBindings.onarrival;
           currentRoute.ondeparture = paramBindings.ondeparture;
           delete paramBindings.ondeparture;
+          var pushBindings = paramBindings.pushBindings;
 
           if (isNew) {
             setParamBindings(currentRoute.params, paramBindings);
@@ -310,10 +320,7 @@ exports.route = function (pattern) {
               onarrival(currentRoute.params);
             }
           } else {
-            var newParams = getParamBindings(currentRoute.params, paramBindings);
-            if (newParams) {
-              currentRoute.replace(newParams);
-            }
+            applyParamBindings(currentRoute.params, paramBindings);
           }
         }
 
@@ -349,10 +356,7 @@ exports.route = function (pattern) {
       if (router.isNewHref()) {
         setParamBindings(params, paramBindings);
       } else {
-        var newParams = getParamBindings(router.currentRoute.params, paramBindings);
-        if (newParams) {
-          router.currentRoute.replace(newParams);
-        }
+        applyParamBindings(router.currentRoute.params, paramBindings);
       }
     }
 
@@ -388,7 +392,10 @@ function setParamBindings(params, paramBindings) {
   }
 }
 
-function getParamBindings(params, paramBindings) {
+function applyParamBindings(params, paramBindings) {
+  var pushBindings = paramBindings.push;
+  delete paramBindings.push;
+
   var bindings = Object.keys(paramBindings).map(function (key) {
     return {
       key: key,
@@ -402,6 +409,7 @@ function getParamBindings(params, paramBindings) {
 
   if (allBindingsHaveGetters) {
     var newParams = {};
+    var push = false;
 
     var paramKeys = Object.keys(params);
     for(var n = 0; n < paramKeys.length; n++) {
@@ -409,15 +417,23 @@ function getParamBindings(params, paramBindings) {
       newParams[param] = params[param];
     }
 
-    for(var n = 0; n < bindings.length; n++) {
+    for(n = 0; n < bindings.length; n++) {
       var b = bindings[n];
       if (b.binding.get) {
         var value = b.binding.get();
         newParams[b.key] = value;
+
+        if (pushBindings && value != params[b.key]) {
+          push = push || pushBindings[b.key];
+        }
       }
     }
 
-    return newParams;
+    if (push) {
+      router.currentRoute.push(newParams);
+    } else {
+      router.currentRoute.replace(newParams);
+    }
   }
 }
 
@@ -523,7 +539,7 @@ exports.hash = {
   start: function () {
     var self = this;
     if (!this.listening) {
-      this.hashchangeListener = function(ev) {
+      this.hashchangeListener = function() {
         if (!self.pushed) {
           if (refresh) {
             refresh();
@@ -554,7 +570,7 @@ exports.hash = {
     this.pushed = true;
     window.location.hash = url.replace(/^\//, '');
   },
-  state: function (state) {
+  state: function () {
   },
   replace: function (url) {
     return this.push(url);

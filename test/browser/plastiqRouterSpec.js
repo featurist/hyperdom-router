@@ -212,6 +212,53 @@ function describePlastiqRouter(apiName) {
       });
     });
 
+    if (apiName != 'hash') {
+      it('can specify which bindings replace or push the URL', function () {
+        var a = router.route('/a/:a/:b');
+
+        function render(model) {
+          return h('div',
+            a({
+              a: [model, 'a'],
+              b: [model, 'b'],
+
+              push: {a: true}
+            }, function () {
+              return h('div',
+                h('h1', 'a: ' + model.a + ', b: ' + model.b),
+                h('button', {onclick: function () { model.a++; model.optional = 'yo'; }}, 'add a'),
+                h('button', {onclick: function () { model.b++; model.optional = 'yo'; }}, 'add b')
+              );
+            })
+          );
+        }
+
+        setLocation('/a/1/1');
+        var model = {};
+        mount(render, model);
+
+        return browser.find('h1', {text: 'a: 1, b: 1'}).shouldExist().then(function () {
+          return browser.find('button', {text: 'add a'}).click();
+        }).then(function () {
+          return browser.find('h1', {text: 'a: 2, b: 1'}).shouldExist();
+        }).then(function () {
+          return browser.find('button', {text: 'add b'}).click();
+        }).then(function () {
+          return browser.find('h1', {text: 'a: 2, b: 2'}).shouldExist();
+        }).then(function () {
+          expect(api.location().pathname).to.equal('/a/2/2');
+          expect(model.a).to.equal(2);
+          expect(model.b).to.equal(2);
+          history.back();
+          return browser.find('h1', {text: 'a: 1, b: 1'}).shouldExist();
+        }).then(function () {
+          expect(api.location().pathname).to.equal('/a/1/1');
+          expect(model.a).to.equal('1');
+          expect(model.b).to.equal('1');
+        });
+      });
+    }
+
     it("doesn't navigate if already on the route", function () {
       var root = router.route('/');
       var a = router.route('/a');
