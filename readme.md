@@ -399,3 +399,11 @@ routeInstance.a([options], contents, ...)
 ```
 
 Generates virtual DOM for an anchor for the route, passing the arguments to `h('a', options, contents, ...)`, but with the correct `href` and `onclick` properties set.
+
+### querystring
+
+If you need complex values in query string parameters (e.g. arrays), you can provide a query string library that supports that (e.g. [qs](https://www.npmjs.com/package/qs) or [querystring](https://nodejs.org/api/querystring.html))
+
+```js
+router.querystring = require('qs');
+```

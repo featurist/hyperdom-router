@@ -3,8 +3,9 @@ var h = plastiq.html;
 var router = require('../..');
 var browser = require('browser-monkey').scope('.test');
 var expect = require('chai').expect;
+var querystring = require('querystring');
 
-function describePlastiqRouter(apiName) {
+function describePlastiqRouter(apiName, qs) {
   describe('plastiq router ' + apiName, function () {
     var originalLocation;
     var api = router[apiName];
@@ -21,6 +22,10 @@ function describePlastiqRouter(apiName) {
       var options = apiName == 'historyApi'
         ? undefined
         : {history: api};
+
+      if (qs == 'querystring') {
+        router.querystring = querystring;
+      }
 
       router.start(options);
     });
@@ -523,7 +528,7 @@ function describePlastiqRouter(apiName) {
       expect(a({id: 'asdf', optional: 'yo'}).href).to.equal('/a/asdf?optional=yo');
     });
 
-    it('can return the href for a given route with params', function () {
+    it('can return the href for a given route with wildcard params', function () {
       var a = router.route('/a/:id/:path*');
       expect(a({id: 'asdf/qw er', path: 'a/b c/d', optional: 'yo'}).href).to.equal('/a/asdf%2Fqw%20er/a/b%20c/d?optional=yo');
     });
@@ -532,6 +537,7 @@ function describePlastiqRouter(apiName) {
 
 describePlastiqRouter('hash');
 describePlastiqRouter('historyApi');
+describePlastiqRouter('hash', 'querystring');
 
 function mount(render, model) {
   var div = document.createElement('div');

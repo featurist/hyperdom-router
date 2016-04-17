@@ -15,11 +15,13 @@ module.exports = function(config) {
 
     // list of files / patterns to load in the browser
     files: [
-      "test/browser/**/*Spec.js"
+      "test/browser/**/*Spec.js",
+      "index.js"
     ],
 
     preprocessors: {
-      "test/browser/**/*Spec.js" : ["browserify"]
+      "test/browser/**/*Spec.js" : ["browserify"],
+      "index.js" : ["browserify"]
     },
 
     browserify: {
