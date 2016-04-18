@@ -62,11 +62,9 @@ Router.prototype.makeCurrentRoute = function () {
 
     if (routeRecognised) {
       var routeParams  = associativeArrayToObject(routeRecognised.params);
-      var searchParams = location.search && exports.querystring.parse(location.search.substring(1));
+      var searchParams = exports.querystring.parse((location.search || '').substring(1));
 
-      var params = searchParams
-        ? merge(searchParams, routeParams)
-        : routeParams;
+      var params = merge(searchParams, routeParams);
 
       var expandedUrl = expand(routeRecognised.route.pattern, params);
       var self = this;
