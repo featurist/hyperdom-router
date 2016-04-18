@@ -3,6 +3,27 @@ var plastiq = require('plastiq');
 var h = plastiq.html;
 var refresh;
 
+var defaultQuerystring = {
+  parse: function(search) {
+    return search && search.substring(1).split('&').map(function (param) {
+      return param.split('=').map(decodeURIComponent);
+    });
+  },
+  stringify: function(paramsObject) {
+    var query = Object.keys(paramsObject).map(function (key) {
+      var param = paramToString(paramsObject[key]);
+
+      if (param != '') {
+        return encodeURIComponent(key) + '=' + encodeURIComponent(param);
+      }
+    }).filter(function (param) {
+      return param;
+    }).join('&');
+
+    return query;
+  }
+};
+
 function Routes() {
   this.routes = [];
   this.routesChanged = false;
@@ -26,6 +47,7 @@ Routes.prototype.add = function (pattern) {
 
 function Router() {
   this.routes = new Routes();
+  this.querystring = defaultQuerystring;
 }
 
 Router.prototype.start = function (history) {
@@ -61,7 +83,7 @@ Router.prototype.makeCurrentRoute = function () {
     var routeRecognised = this.routes.recognise(location.pathname);
 
     if (routeRecognised) {
-      var search = location.search && parseSearch(location.search);
+      var search = location.search && this.querystring.parse(location.search);
       var paramArray = search
         ? search.concat(routeRecognised.params)
         : routeRecognised.params;
@@ -211,12 +233,6 @@ function matchUnder(pattern) {
 }
 
 var router = createRouter();
-
-function parseSearch(search) {
-  return search && search.substring(1).split('&').map(function (param) {
-    return param.split('=').map(decodeURIComponent);
-  });
-}
 
 exports.start = function (options) {
   if (!router) {
@@ -461,30 +477,26 @@ function paramToString(p) {
   }
 }
 
+function clone(thing) {
+  return JSON.parse(JSON.stringify(thing));
+}
+
 function expand(pattern, params) {
-  var paramsExpanded = {};
+  var onlyQueryParams = clone(params);
 
   var url = pattern.replace(/:([a-z_][a-z0-9_]*)\*/gi, function (_, id) {
     var param = params[id];
-    paramsExpanded[id] = true;
+    delete onlyQueryParams[id];
     return encodeURI(paramToString(param));
   });
 
   url = url.replace(/:([a-z_][a-z0-9_]*)/gi, function (_, id) {
     var param = params[id];
-    paramsExpanded[id] = true;
+    delete onlyQueryParams[id];
     return encodeURIComponent(paramToString(param));
   });
 
-  var query = Object.keys(params).map(function (key) {
-    var param = paramToString(params[key]);
-
-    if (!paramsExpanded[key] && param != '') {
-      return encodeURIComponent(key) + '=' + encodeURIComponent(param);
-    }
-  }).filter(function (param) {
-    return param;
-  }).join('&');
+  var query = router.querystring.stringify(onlyQueryParams);
 
   if (query) {
     return url + '?' + query;
