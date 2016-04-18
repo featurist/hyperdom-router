@@ -3,27 +3,6 @@ var plastiq = require('plastiq');
 var h = plastiq.html;
 var refresh;
 
-var defaultQuerystring = {
-  parse: function(search) {
-    return search && search.substring(1).split('&').map(function (param) {
-      return param.split('=').map(decodeURIComponent);
-    });
-  },
-  stringify: function(paramsObject) {
-    var query = Object.keys(paramsObject).map(function (key) {
-      var param = paramToString(paramsObject[key]);
-
-      if (param != '') {
-        return encodeURIComponent(key) + '=' + encodeURIComponent(param);
-      }
-    }).filter(function (param) {
-      return param;
-    }).join('&');
-
-    return query;
-  }
-};
-
 function Routes() {
   this.routes = [];
   this.routesChanged = false;
@@ -47,7 +26,6 @@ Routes.prototype.add = function (pattern) {
 
 function Router() {
   this.routes = new Routes();
-  this.querystring = defaultQuerystring;
 }
 
 Router.prototype.start = function (history) {
@@ -83,12 +61,12 @@ Router.prototype.makeCurrentRoute = function () {
     var routeRecognised = this.routes.recognise(location.pathname);
 
     if (routeRecognised) {
-      var search = location.search && this.querystring.parse(location.search);
-      var paramArray = search
-        ? search.concat(routeRecognised.params)
-        : routeRecognised.params;
+      var routeParams  = associativeArrayToObject(routeRecognised.params);
+      var searchParams = location.search && exports.querystring.parse(location.search.substring(1));
 
-      var params = associativeArrayToObject(paramArray);
+      var params = searchParams
+        ? merge(searchParams, routeParams)
+        : routeParams;
 
       var expandedUrl = expand(routeRecognised.route.pattern, params);
       var self = this;
@@ -248,6 +226,32 @@ exports.stop = function () {
 exports.clear = function () {
   router.stop();
   router = undefined;
+};
+
+exports.querystring = {
+  parse: function(search) {
+    var params = {};
+
+    (search || '').split('&').map(function (param) {
+      var v = param.split('=').map(decodeURIComponent);
+      params[v[0]] = v[1];
+    });
+
+    return params;
+  },
+  stringify: function(paramsObject) {
+    var query = Object.keys(paramsObject).map(function (key) {
+      var param = paramToString(paramsObject[key]);
+
+      if (param != '') {
+        return encodeURIComponent(key) + '=' + encodeURIComponent(param);
+      }
+    }).filter(function (param) {
+      return param;
+    }).join('&');
+
+    return query;
+  }
 };
 
 exports.route = function (pattern) {
@@ -469,6 +473,16 @@ function associativeArrayToObject(array) {
   return o;
 }
 
+function merge(obj1, obj2) {
+  var o = clone(obj1);
+
+  Object.keys(obj2).forEach(function(key) {
+    o[key] = obj2[key];
+  });
+
+  return o;
+}
+
 function paramToString(p) {
   if (p === undefined || p === null) {
     return '';
@@ -496,7 +510,7 @@ function expand(pattern, params) {
     return encodeURIComponent(paramToString(param));
   });
 
-  var query = router.querystring.stringify(onlyQueryParams);
+  var query = exports.querystring.stringify(onlyQueryParams);
 
   if (query) {
     return url + '?' + query;
