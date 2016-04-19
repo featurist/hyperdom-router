@@ -4,6 +4,7 @@ var router = require('../..');
 var browser = require('browser-monkey').scope('.test');
 var expect = require('chai').expect;
 var querystring = require('querystring');
+require('lie/polyfill');
 
 function describePlastiqRouter(apiName, qs) {
   describe('plastiq router ' + apiName, function () {
