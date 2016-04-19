@@ -1,4 +1,4 @@
-# plastiq-router
+# plastiq-router [![npm version](https://img.shields.io/npm/v/plastiq-router.svg)](https://www.npmjs.com/package/plastiq-router) [![npm](https://img.shields.io/npm/dm/plastiq-router.svg)](https://www.npmjs.com/package/plastiq-router) [![Build Status](https://travis-ci.org/featurist/plastiq-router.svg?branch=master)](https://travis-ci.org/featurist/plastiq-router)
 
 * incredibly simple
 * works with History API or Hashes
