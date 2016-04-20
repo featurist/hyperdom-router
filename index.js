@@ -57,48 +57,46 @@ Router.prototype.makeCurrentRoute = function () {
   var location = this.history.location();
   var href = location.pathname + location.search;
 
-  if (!this.currentRoute || this.currentRoute.href != href) {
-    var routeRecognised = this.routes.recognise(location.pathname);
+  var routeRecognised = this.routes.recognise(location.pathname);
 
-    if (routeRecognised) {
-      var routeParams  = associativeArrayToObject(routeRecognised.params);
-      var searchParams = exports.querystring.parse((location.search || '').substring(1));
+  if (routeRecognised) {
+    var routeParams  = associativeArrayToObject(routeRecognised.params);
+    var searchParams = exports.querystring.parse((location.search || '').substring(1));
 
-      var params = merge(searchParams, routeParams);
+    var params = merge(searchParams, routeParams);
 
-      var expandedUrl = expand(routeRecognised.route.pattern, params);
-      var self = this;
+    var expandedUrl = expand(routeRecognised.route.pattern, params);
+    var self = this;
 
-      if (this.currentRoute && this.currentRoute.ondeparture) {
-        this.currentRoute.ondeparture();
-      }
-
-      this.currentRoute = {
-        route: routeRecognised.route,
-        params: params,
-        href: href,
-        expandedUrl: expandedUrl,
-
-        push: function (params) {
-          var url = expand(this.route.pattern, params);
-          this.params = params;
-          self.currentHref = url;
-          self.push(url);
-        },
-
-        replace: function (params) {
-          var url = expand(this.route.pattern, params);
-          this.params = params;
-          self.currentHref = url;
-          self.replace(url);
-        }
-      };
-    } else {
-      this.currentRoute = {
-        isNotFound: true,
-        href: href
-      };
+    if (this.currentRoute && this.currentRoute.ondeparture) {
+      this.currentRoute.ondeparture();
     }
+
+    this.currentRoute = {
+      route: routeRecognised.route,
+      params: params,
+      href: href,
+      expandedUrl: expandedUrl,
+
+      push: function (params) {
+        var url = expand(this.route.pattern, params);
+        this.params = params;
+        self.currentHref = url;
+        self.push(url);
+      },
+
+      replace: function (params) {
+        var url = expand(this.route.pattern, params);
+        this.params = params;
+        self.currentHref = url;
+        self.replace(url);
+      }
+    };
+  } else {
+    this.currentRoute = {
+      isNotFound: true,
+      href: href
+    };
   }
 };
 
@@ -114,7 +112,9 @@ Router.prototype.setupRender = function () {
 
     this._isNewHref = this.lastHref != this.currentHref;
 
-    this.makeCurrentRoute();
+    if (this._isNewHref) {
+      this.makeCurrentRoute();
+    }
   }
 };
 
@@ -123,9 +123,7 @@ Router.prototype.isNewHref = function () {
 };
 
 Router.prototype.isCurrentRoute = function (route) {
-  this.makeCurrentRoute();
-
-  if (this.currentRoute.route === route) {
+  if (this.currentRoute && this.currentRoute.route === route) {
     return this.currentRoute;
   }
 };
@@ -261,13 +259,14 @@ exports.route = function (pattern) {
       paramBindings = undefined;
     }
 
-    var currentRoute;
+    router.setupRender();
+
+    var currentRoute = router.started && router.isCurrentRoute(route);
 
     if (!render) {
       var params = paramBindings || {};
       var url = expand(pattern, params);
 
-      currentRoute = router.started && router.isCurrentRoute(route);
 
       return {
         push: function (ev) {
@@ -317,10 +316,7 @@ exports.route = function (pattern) {
         throw new Error("router not started yet, start with require('plastiq-router').start([history])");
       }
 
-      router.setupRender();
-
       refresh = h.refresh;
-      currentRoute = router.isCurrentRoute(route);
       var isNew = router.isNewHref();
 
       if (currentRoute) {
