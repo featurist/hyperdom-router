@@ -78,18 +78,21 @@ Router.prototype.makeCurrentRoute = function () {
       href: href,
       expandedUrl: expandedUrl,
 
-      push: function (params) {
+      setParams: function (params, pushOrReplace) {
         var url = expand(this.route.pattern, params);
+        self[pushOrReplace](url);
         this.params = params;
+        this.expandedUrl = url;
+        this.href = url;
         self.currentHref = url;
-        self.push(url);
+      },
+
+      push: function (params) {
+        this.setParams(params, 'push');
       },
 
       replace: function (params) {
-        var url = expand(this.route.pattern, params);
-        this.params = params;
-        self.currentHref = url;
-        self.replace(url);
+        this.setParams(params, 'replace');
       }
     };
   } else {
