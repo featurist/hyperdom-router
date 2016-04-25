@@ -328,6 +328,7 @@ exports.route = function (pattern) {
           delete paramBindings.onarrival;
           currentRoute.ondeparture = paramBindings.ondeparture;
           delete paramBindings.ondeparture;
+          var pushBindings = pushFromBindings(paramBindings);
 
           if (isNew) {
             setParamBindings(currentRoute.params, paramBindings);
@@ -336,7 +337,7 @@ exports.route = function (pattern) {
               onarrival(currentRoute.params);
             }
           } else {
-            applyParamBindings(currentRoute.params, paramBindings);
+            applyParamBindings(currentRoute.params, paramBindings, pushBindings);
           }
         }
 
@@ -369,10 +370,12 @@ exports.route = function (pattern) {
     if (params && paramBindings && fn) {
       router.setupRender();
 
+      var pushBindings = pushFromBindings(paramBindings);
+
       if (router.isNewHref()) {
         setParamBindings(params, paramBindings);
       } else {
-        applyParamBindings(router.currentRoute.params, paramBindings);
+        applyParamBindings(router.currentRoute.params, paramBindings, pushBindings);
       }
     }
 
@@ -392,6 +395,12 @@ exports.route = function (pattern) {
   return routeFn;
 };
 
+function pushFromBindings(paramBindings) {
+  var pushBindings = paramBindings.push;
+  delete paramBindings.push;
+  return pushBindings;
+}
+
 function setParamBindings(params, paramBindings) {
   var paramKeys = Object.keys(paramBindings);
   for (var n = 0; n < paramKeys.length; n++) {
@@ -406,10 +415,7 @@ function setParamBindings(params, paramBindings) {
   }
 }
 
-function applyParamBindings(params, paramBindings) {
-  var pushBindings = paramBindings.push;
-  delete paramBindings.push;
-
+function applyParamBindings(params, paramBindings, pushBindings) {
   var bindings = Object.keys(paramBindings).map(function (key) {
     return {
       key: key,
