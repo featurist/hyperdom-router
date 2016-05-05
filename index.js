@@ -80,7 +80,7 @@ Router.prototype.makeCurrentRoute = function () {
 
       setParams: function (params, pushOrReplace) {
         var url = expand(this.route.pattern, params);
-        self[pushOrReplace](url);
+        self.pushOrReplace(pushOrReplace, url, {refresh: false});
         this.params = params;
         this.expandedUrl = url;
         this.href = url;
@@ -136,6 +136,8 @@ Router.prototype.add = function (pattern) {
 };
 
 Router.prototype.pushOrReplace = function (pushReplace, url, options) {
+  var refreshAfter = typeof options == 'object' && options.hasOwnProperty('refresh')? options.refresh: true;
+
   if ((options && options.force) || !this.currentRoute || this.currentRoute.expandedUrl != url) {
     this.history[pushReplace](url);
 
@@ -143,7 +145,7 @@ Router.prototype.pushOrReplace = function (pushReplace, url, options) {
       this.currentRoute.ondeparture();
     }
 
-    if (refresh) {
+    if (refresh && refreshAfter) {
       refresh();
     }
   }

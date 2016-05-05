@@ -186,8 +186,10 @@ function describePlastiqRouter(apiName, qs) {
 
     it('can read bindings into params', function () {
       var a = router.route('/a/:id');
+      var renders = 0;
 
       function render(model) {
+        renders++;
         return h('div',
           a({id: [model, 'id'], optional: [model, 'optional']}, function () {
             return h('div',
@@ -202,7 +204,10 @@ function describePlastiqRouter(apiName, qs) {
       var model = {};
       mount(render, model);
 
+      var rendersBeforeClick;
+
       return browser.find('h1', {text: 'id: 1'}).shouldExist().then(function () {
+        rendersBeforeClick = renders;
         return browser.find('button', {text: 'add'}).click();
       }).then(function () {
         return browser.find('h1', {text: 'id: 2'}).shouldExist();
@@ -210,6 +215,7 @@ function describePlastiqRouter(apiName, qs) {
         expect(api.location().pathname).to.equal('/a/2');
         expect(api.location().search).to.equal('?optional=yo');
         expect(model.id).to.equal(2);
+        expect(renders).to.equal(rendersBeforeClick + 1);
       });
     });
 
