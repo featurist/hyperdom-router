@@ -20,9 +20,9 @@ npm install plastiq-router
 var router = require('plastiq-router');
 
 var routes = {
-  home: router.route('/'),
-  posts: router.post('/posts'),
-  post: router.post('/posts/:postId')
+  home:  router.route('/'),
+  posts: router.route('/posts'),
+  post:  router.route('/posts/:postId')
 };
 ```
 
