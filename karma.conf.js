@@ -39,6 +39,10 @@ module.exports = function(config) {
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
     reporters: ['mocha'],
 
+    mochaReporter: {
+      showDiff: true
+    },
+
     // client: {
       // args: ['--grep', 'updating and inserting queries|^report.*']
     // },

@@ -2,6 +2,7 @@ var plastiq = require('plastiq');
 var h = plastiq.html;
 var router = require('../..');
 var browser = require('browser-monkey').scope('.test');
+var retry = require('trytryagain');
 var expect = require('chai').expect;
 var querystring = require('querystring');
 require('lie/polyfill');
@@ -72,58 +73,133 @@ function describePlastiqRouter(apiName, qs) {
       });
     });
 
-    it('calls arrival departure events', function () {
-      var a = router.route('/a');
-      var b = router.route('/b/:id');
-      var c = router.route('/c');
+    describe('onarrival', function () {
+      it('calls arrival departure events', function () {
+        var a = router.route('/a');
+        var b = router.route('/b/:id');
+        var c = router.route('/c');
 
-      function render(model) {
-        return h('div',
-          a(function () {
-            return h('h1', 'route: a', b({id: '1'}).link('b'));
-          }),
-          b({
-            onarrival: function (params) {
-              model.event = 'arrived at b: ' + params.id;
-            },
-            ondeparture: function () {
-              model.event = 'departed from b'
-            }
-          }, function () {
-            return h('h1', 'route: b', c().link('c'));
-          }),
-          c(function () {
-            return h('h1', 'route: c');
-          })
-        );
-      }
+        function render(model) {
+          return h('div',
+            a(function () {
+              return h('h1', 'route: a', b({id: '1'}).link('b'));
+            }),
+            b({
+              onarrival: function (params) {
+                model.event = 'arrived at b: ' + params.id;
+              },
+              ondeparture: function () {
+                model.event = 'departed from b'
+              }
+            }, function () {
+              return h('div',
+                h('h1', 'route: b'),
+                h('ul',
+                  h('li', c().link('c')),
+                  h('li', b({id: 2}).link('b2')),
+                  h('li', h('button', {onclick: function () { model.id = 3; }}, 'b3'))
+                )
+              );
+            }),
+            c(function () {
+              return h('h1', 'route: c');
+            })
+          );
+        }
 
-      var model = {};
-      setLocation('/a');
-      mount(render, model);
+        var model = {};
+        setLocation('/a');
+        mount(render, model);
 
-      return browser.find('h1', {text: 'route: a'}).shouldExist().then(function () {
-        return browser.find('a', {text: 'b'}).click();
-      }).then(function () {
-        return browser.find('h1', {text: 'route: b'}).shouldExist();
-      }).then(function () {
-        expect(model.event, 'first').to.equal('arrived at b: 1');
-      }).then(function () {
-        return browser.find('a', {text: 'c'}).click();
-      }).then(function () {
-        return browser.find('h1', {text: 'route: c'}).shouldExist();
-      }).then(function () {
-        expect(model.event).to.equal('departed from b');
-      }).then(function () {
-        history.back();
-        return browser.find('h1', {text: 'route: b'}).shouldExist();
-      }).then(function () {
-        expect(model.event, 'second').to.equal('arrived at b: 1');
-      }).then(function () {
-        history.back();
-        return browser.find('h1', {text: 'route: a'}).shouldExist();
-      }).then(function () {
-        expect(model.event).to.equal('departed from b');
+        return browser.find('h1', {text: 'route: a'}).shouldExist().then(function () {
+          return browser.find('a', {text: 'b'}).click();
+        }).then(function () {
+          return browser.find('h1', {text: 'route: b'}).shouldExist();
+        }).then(function () {
+          return retry(function () {
+            expect(model.event, 'first').to.equal('arrived at b: 1');
+          });
+        }).then(function () {
+          return browser.find('a', {text: 'c'}).click();
+        }).then(function () {
+          return browser.find('h1', {text: 'route: c'}).shouldExist();
+        }).then(function () {
+          return retry(function () {
+            expect(model.event).to.equal('departed from b');
+          });
+        }).then(function () {
+          history.back();
+          return browser.find('h1', {text: 'route: b'}).shouldExist();
+        }).then(function () {
+          return retry(function () {
+            expect(model.event, 'second').to.equal('arrived at b: 1');
+          });
+        }).then(function () {
+          history.back();
+          return browser.find('h1', {text: 'route: a'}).shouldExist();
+        }).then(function () {
+          return retry(function () {
+            expect(model.event).to.equal('departed from b');
+          });
+        });
+      });
+
+      it('calls onarrival when bindings change', function () {
+        var home = router.route('/:id');
+
+        function render(model) {
+          return h('div',
+            home({
+              id: [model, 'id'],
+              onarrival: function (params) {
+                model.events.push('arrived at home: ' + params.id);
+              },
+              ondeparture: function () {
+                model.events.push('departed from home');
+              }
+            }, function () {
+              return h('div',
+                h('h1', 'home(' + model.id + ')'),
+                h('ul',
+                  h('li', home({id: 2}).link('id2')),
+                  h('li', h('button', {onclick: function () { model.id = 3; }}, 'id3'))
+                )
+              );
+            })
+          );
+        }
+
+        var model = {events: []};
+        setLocation('/1');
+        mount(render, model);
+
+        var expectedEvents = [];
+        function checkEvents() {
+          expect(model.events).to.eql(expectedEvents);
+        }
+
+        return browser.find('h1', {text: 'home(1)'}).shouldExist().then(function () {
+          expectedEvents.push('arrived at home: 1');
+          return retry(function () {
+            checkEvents();
+          });
+        }).then(function () {
+          return browser.find('a', {text: 'id2'}).click();
+        }).then(function () {
+          expectedEvents.push('departed from home');
+          expectedEvents.push('arrived at home: 2');
+          return retry(function () {
+            checkEvents();
+          });
+        }).then(function () {
+          return browser.find('button', {text: 'id3'}).click();
+        }).then(function () {
+          expectedEvents.push('departed from home');
+          expectedEvents.push('arrived at home: 3');
+          return retry(function () {
+            checkEvents();
+          });
+        });
       });
     });
 

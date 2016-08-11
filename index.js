@@ -68,8 +68,8 @@ Router.prototype.makeCurrentRoute = function () {
     var expandedUrl = expand(routeRecognised.route.pattern, params);
     var self = this;
 
-    if (this.currentRoute && this.currentRoute.ondeparture) {
-      this.currentRoute.ondeparture();
+    if (this.currentRoute) {
+      this.currentRoute.depart();
     }
 
     this.currentRoute = {
@@ -77,11 +77,28 @@ Router.prototype.makeCurrentRoute = function () {
       params: params,
       href: href,
       expandedUrl: expandedUrl,
+      ondeparture: undefined,
+
+      depart: function () {
+        if (this.ondeparture) {
+          this.ondeparture();
+          this.ondeparture = undefined;
+        }
+      },
+
+      arrive: function () {
+        if (this.onarrival) {
+          this.onarrival(this.params);
+        }
+      },
 
       setParams: function (params, pushOrReplace) {
         var url = expand(this.route.pattern, params);
         self.pushOrReplace(pushOrReplace, url, {refresh: false});
         this.params = params;
+        if (this.expandedUrl != url) {
+          this.arrive();
+        }
         this.expandedUrl = url;
         this.href = url;
         self.currentHref = url;
@@ -141,9 +158,7 @@ Router.prototype.pushOrReplace = function (pushReplace, url, options) {
   if ((options && options.force) || !this.currentRoute || this.currentRoute.expandedUrl != url) {
     this.history[pushReplace](url);
 
-    if (this.currentRoute.ondeparture) {
-      this.currentRoute.ondeparture();
-    }
+    this.currentRoute.depart();
 
     if (refresh && refreshAfter) {
       refresh();
@@ -326,7 +341,7 @@ exports.route = function (pattern) {
 
       if (currentRoute) {
         if (paramBindings) {
-          var onarrival = paramBindings.onarrival && h.refreshify(paramBindings.onarrival, {refresh: 'promise'});
+          currentRoute.onarrival = paramBindings.onarrival && h.refreshify(paramBindings.onarrival, {refresh: 'promise'});
           delete paramBindings.onarrival;
           currentRoute.ondeparture = paramBindings.ondeparture;
           delete paramBindings.ondeparture;
@@ -334,10 +349,7 @@ exports.route = function (pattern) {
 
           if (isNew) {
             setParamBindings(currentRoute.params, paramBindings);
-
-            if (onarrival) {
-              onarrival(currentRoute.params);
-            }
+            currentRoute.arrive();
           } else {
             applyParamBindings(currentRoute.params, paramBindings, pushBindings);
           }
