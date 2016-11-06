@@ -1,5 +1,5 @@
-var plastiq = require('plastiq');
-var h = plastiq.html;
+var hyperdom = require('hyperdom');
+var h = hyperdom.html;
 var router = require('../..');
 var browser = require('browser-monkey').scope('.test');
 var retry = require('trytryagain');
@@ -7,8 +7,8 @@ var expect = require('chai').expect;
 var querystring = require('querystring');
 require('lie/polyfill');
 
-function describePlastiqRouter(apiName, qs) {
-  describe('plastiq router ' + apiName, function () {
+function describeHyperDomRouter(apiName, qs) {
+  describe('hyperdom router ' + apiName, function () {
     var originalLocation;
     var api = router[apiName];
 
@@ -618,15 +618,15 @@ function describePlastiqRouter(apiName, qs) {
   });
 }
 
-describePlastiqRouter('hash');
-describePlastiqRouter('historyApi');
-describePlastiqRouter('hash', 'querystring');
+describeHyperDomRouter('hash');
+describeHyperDomRouter('historyApi');
+describeHyperDomRouter('hash', 'querystring');
 
 function mount(render, model) {
   var div = document.createElement('div');
   div.classList.add('test');
   document.body.appendChild(div);
-  plastiq.append(div, render, model, {requestRender: setTimeout});
+  hyperdom.append(div, render, model, {requestRender: setTimeout});
   return div;
 }
 

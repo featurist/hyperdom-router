@@ -1,6 +1,6 @@
 var routism = require('routism');
-var plastiq = require('plastiq');
-var h = plastiq.html;
+var hyperdom = require('hyperdom');
+var h = hyperdom.html;
 var refresh;
 
 function Routes() {
@@ -333,7 +333,7 @@ exports.route = function (pattern) {
       };
     } else {
       if (!router.started) {
-        throw new Error("router not started yet, start with require('plastiq-router').start([history])");
+        throw new Error("router not started yet, start with require('hyperdom-router').start([history])");
       }
 
       refresh = h.refresh;
