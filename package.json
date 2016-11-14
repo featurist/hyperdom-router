@@ -1,46 +1,47 @@
 {
-  "name": "plastiq-router",
+  "name": "hyperdom-router",
   "version": "2.18.0",
-  "description": "model driven router for plastiq",
+  "description": "model driven router for hyperdom",
   "main": "index.js",
   "scripts": {
-    "test": "karma start --single-run --browsers PhantomJS && mocha test/server"
+    "test": "karma start --single-run --browsers Electron && mocha test/server"
   },
   "author": "Tim Macfarlane <timmacfarlane@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "global": "4.3.1",
     "routism": "1.2.0"
   },
   "peerDependencies": {
-    "plastiq": "^1.14.0"
+    "hyperdom": "^0.2.0"
   },
   "devDependencies": {
     "browser-monkey": "1.28.2",
     "browserify": "13.0.0",
     "chai": "3.5.0",
+    "electron-prebuilt": "^1.4.5",
+    "hyperdom": "0.2.0",
     "karma": "0.13.22",
     "karma-browserify": "5.0.3",
     "karma-chrome-launcher": "0.2.3",
     "karma-cli": "0.1.2",
+    "karma-electron-launcher": "^0.1.0",
     "karma-mocha": "1.1.1",
     "karma-mocha-reporter": "2.1.0",
-    "karma-phantomjs-launcher": "1.0.0",
     "lie": "3.0.2",
     "mocha": "2.4.5",
-    "phantomjs-prebuilt": "2.1.7",
-    "plastiq": "1.28.0",
     "watchify": "3.7.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/featurist/plastiq-router.git"
+    "url": "https://github.com/featurist/hyperdom-router.git"
   },
   "keywords": [
-    "plastiq",
+    "hyperdom",
     "router"
   ],
   "bugs": {
-    "url": "https://github.com/featurist/plastiq-router/issues"
+    "url": "https://github.com/featurist/hyperdom-router/issues"
   },
-  "homepage": "https://github.com/featurist/plastiq-router"
+  "homepage": "https://github.com/featurist/hyperdom-router"
 }

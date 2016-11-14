@@ -1,4 +1,4 @@
-# plastiq-router [![npm version](https://img.shields.io/npm/v/plastiq-router.svg)](https://www.npmjs.com/package/plastiq-router) [![npm](https://img.shields.io/npm/dm/plastiq-router.svg)](https://www.npmjs.com/package/plastiq-router) [![Build Status](https://travis-ci.org/featurist/plastiq-router.svg?branch=master)](https://travis-ci.org/featurist/plastiq-router)
+# hyperdom-router [![npm version](https://img.shields.io/npm/v/hyperdom-router.svg)](https://www.npmjs.com/package/hyperdom-router) [![npm](https://img.shields.io/npm/dm/hyperdom-router.svg)](https://www.npmjs.com/package/hyperdom-router) [![Build Status](https://travis-ci.org/featurist/hyperdom-router.svg?branch=master)](https://travis-ci.org/featurist/hyperdom-router)
 
 * incredibly simple
 * works with History API or Hashes
@@ -9,7 +9,7 @@
 ## install
 
 ```bash
-npm install plastiq-router
+npm install hyperdom-router
 ```
 
 # How?
@@ -17,7 +17,7 @@ npm install plastiq-router
 ## Declare Your Routes
 
 ```js
-var router = require('plastiq-router');
+var router = require('hyperdom-router');
 
 var routes = {
   home:  router.route('/'),
@@ -40,7 +40,7 @@ router.start(router.hash);
 
 ## Render the Routes
 
-In your plastiq render function, just use the different routes to conditionally render different HTML, depending on the current URL:
+In your hyperdom render function, just use the different routes to conditionally render different HTML, depending on the current URL:
 
 ```js
 function render() {
@@ -122,14 +122,14 @@ function renderPosts(model) {
 
 ## example
 
-You can see this example in action [here](http://www.featurist.co.uk/plastiq-router/example/)
+You can see this example in action [here](http://www.featurist.co.uk/hyperdom-router/example/)
 
 * On the search page, notice how the URL changes as you type the search query.
 
 ```js
-var plastiq = require('plastiq');
-var h = plastiq.html;
-var router = require('plastiq-router');
+var hyperdom = require('hyperdom');
+var h = hyperdom.html;
+var router = require('hyperdom-router');
 
 var routes = {
   root: router.route('/'),
@@ -190,7 +190,7 @@ function renderLinks() {
     ' | ',
     routes.search().a('Search')
     ' | ',
-    h('a', {href: 'https://github.com/featurist/plastiq-router'}, 'Github')
+    h('a', {href: 'https://github.com/featurist/hyperdom-router'}, 'Github')
   ];
 }
 
@@ -201,7 +201,7 @@ function renderDocument(d) {
   );
 }
 
-plastiq.append(document.body, render, model);
+hyperdom.append(document.body, render, model);
 ```
 
 # API
