@@ -35,7 +35,7 @@ router.start();
 By default it uses the History API for nice clean URLs, but you can use `#hash` URLs too if you feel strongly about it.
 
 ```js
-router.start(router.hash);
+router.start({history: router.hash});
 ```
 
 ## Render the Routes
@@ -97,8 +97,8 @@ You can set your model up when you arrive at a route by setting `onarrival`. If 
 
 ```js
 var routes = {
-  var posts = router.route('/posts'),
-  var post = router.route('/posts/:postId')
+  posts: router.route('/posts'),
+  post: router.route('/posts/:postId')
 };
 
 function renderPosts(model) {
