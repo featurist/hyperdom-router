@@ -1,7 +1,7 @@
 {
-  "name": "plastiq-router",
+  "name": "hyperdom-router",
   "version": "2.18.0",
-  "description": "model driven router for plastiq",
+  "description": "model driven router for hyperdom",
   "main": "index.js",
   "scripts": {
     "test": "karma start --single-run --browsers PhantomJS && mocha test/server"
@@ -12,7 +12,7 @@
     "routism": "1.2.0"
   },
   "peerDependencies": {
-    "plastiq": "^1.14.0"
+    "hyperdom": "^0.2.0"
   },
   "devDependencies": {
     "browser-monkey": "1.28.2",
@@ -28,19 +28,19 @@
     "lie": "3.0.2",
     "mocha": "2.4.5",
     "phantomjs-prebuilt": "2.1.7",
-    "plastiq": "1.28.0",
+    "hyperdom": "^0.2.0",
     "watchify": "3.7.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/featurist/plastiq-router.git"
+    "url": "https://github.com/featurist/hyperdom-router.git"
   },
   "keywords": [
-    "plastiq",
+    "hyperdom",
     "router"
   ],
   "bugs": {
-    "url": "https://github.com/featurist/plastiq-router/issues"
+    "url": "https://github.com/featurist/hyperdom-router/issues"
   },
-  "homepage": "https://github.com/featurist/plastiq-router"
+  "homepage": "https://github.com/featurist/hyperdom-router"
 }
