@@ -1,3 +1,4 @@
+var window = require('global');
 var routism = require('routism');
 var hyperdom = require('hyperdom');
 var h = hyperdom.html;

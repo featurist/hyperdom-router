@@ -9,6 +9,7 @@
   "author": "Tim Macfarlane <timmacfarlane@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "global": "4.3.1",
     "routism": "1.2.0"
   },
   "peerDependencies": {
